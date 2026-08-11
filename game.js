@@ -2,20 +2,21 @@
   /**
    * Stage path: perceptual → attributes → subitizing → 1:1 count → pattern/shape →
    * numeral link → order → recognition → join/take → conservation
+   * Easy mode: extreme contrasts, 2 choices, glowing hand guides.
    */
   const STAGES = [
     { id: "more", name: "More", say: "Tap the side with more.", rounds: 2, max: 5, icon: "more" },
     { id: "size", name: "Size", say: "Tap the bigger one.", rounds: 2, max: 5, icon: "size" },
     { id: "sort", name: "Sort", say: "Put each with its match.", rounds: 2, max: 5, icon: "sort" },
-    { id: "burst", name: "Flash", say: "Look carefully. How many?", rounds: 2, max: 5, icon: "flash" },
-    { id: "count", name: "Count", say: "Tap each one.", rounds: 2, max: 5, icon: "count" },
+    { id: "burst", name: "Flash", say: "Look carefully. How many?", rounds: 2, max: 3, icon: "flash" },
+    { id: "count", name: "Count", say: "Tap each one.", rounds: 2, max: 3, icon: "count" },
     { id: "pattern", name: "Pattern", say: "What comes next?", rounds: 2, max: 5, icon: "pattern" },
     { id: "shape", name: "Shape", say: "Find the same shape.", rounds: 2, max: 5, icon: "shape" },
-    { id: "match", name: "Match", say: "Match the same amount.", rounds: 2, max: 5, icon: "match" },
-    { id: "order", name: "Order", say: "Small to big.", rounds: 2, max: 5, icon: "order" },
-    { id: "pond", name: "Find", say: "Listen. Tap the number.", rounds: 2, max: 5, icon: "find" },
-    { id: "join", name: "Join", say: "Put together. How many?", rounds: 2, max: 5, icon: "join" },
-    { id: "take", name: "Take", say: "Some go away. How many left?", rounds: 2, max: 5, icon: "take" },
+    { id: "match", name: "Match", say: "Match the same amount.", rounds: 2, max: 4, icon: "match" },
+    { id: "order", name: "Order", say: "Small to big.", rounds: 2, max: 3, icon: "order" },
+    { id: "pond", name: "Find", say: "Listen. Tap the number.", rounds: 2, max: 3, icon: "find" },
+    { id: "join", name: "Join", say: "Put together. How many?", rounds: 2, max: 4, icon: "join" },
+    { id: "take", name: "Take", say: "Some go away. How many left?", rounds: 2, max: 4, icon: "take" },
     { id: "same", name: "Same", say: "Do they match? Tap the equal sign.", rounds: 2, max: 5, icon: "same" },
   ];
 
@@ -261,6 +262,19 @@
     return `<span class="hand" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M9 11V5a1 1 0 0 1 2 0v4h1V3a1 1 0 0 1 2 0v6h1V4a1 1 0 0 1 2 0v8h1V7a1 1 0 1 1 2 0v9a5 5 0 0 1-5 5h-2.2A5.8 5.8 0 0 1 8 15.2V11z"/></svg></span>`;
   }
 
+  function guide(el) {
+    el.classList.add("guide");
+    if (!el.querySelector(".hand")) el.insertAdjacentHTML("beforeend", handSvg());
+  }
+
+  function clearGuides(root = els.stage) {
+    root.querySelectorAll(".guide").forEach((el) => {
+      el.classList.remove("guide");
+      const h = el.querySelector(".hand");
+      if (h) h.remove();
+    });
+  }
+
   function howHtml(kind) {
     /* Big visual “how” demos — no words required */
     const demos = {
@@ -459,13 +473,18 @@
     )();
   }
 
-  /* 1 MORE / LESS — magnitude */
+  /* 1 MORE — extreme contrast pairs */
   function renderMore() {
-    const max = currentStage().max;
-    let a = randInt(1, max);
-    let b = randInt(1, max);
-    while (a === b) b = randInt(1, max);
-    const leftMore = a > b;
+    const pairs = [
+      [1, 5],
+      [2, 5],
+      [1, 4],
+    ];
+    const [lo, hi] = pairs[randInt(0, pairs.length - 1)];
+    const leftMore = Math.random() < 0.5;
+    const a = leftMore ? hi : lo;
+    const b = leftMore ? lo : hi;
+
     els.prompt.textContent = "More";
     els.stage.innerHTML = `
       <div class="compare-row invite">
@@ -473,7 +492,12 @@
         <div class="vs-mark" aria-hidden="true"><span class="vs-more"></span></div>
         <button type="button" class="pile-btn" data-side="R" aria-label="Right group">${dotsHtml(b, "seed")}</button>
       </div>`;
-    $$(".pile-btn", els.stage).forEach((btn) => {
+
+    const btns = $$(".pile-btn", els.stage);
+    const correct = leftMore ? btns[0] : btns[1];
+    guide(correct);
+
+    btns.forEach((btn) => {
       btn.addEventListener("click", () => {
         const ok = (btn.dataset.side === "L") === leftMore;
         judge(btn, ok);
@@ -481,36 +505,39 @@
     });
   }
 
-  /* SIZE — qualitative comparison */
+  /* SIZE — xl vs xs */
   function renderSize() {
     const leftBig = Math.random() < 0.5;
     els.prompt.textContent = "Bigger";
     els.stage.innerHTML = `
       <div class="compare-row invite size-row">
         <button type="button" class="size-btn" data-big="${leftBig}" aria-label="Left">
-          <span class="size-dot ${leftBig ? "lg" : "sm"}"></span>
+          <span class="size-dot ${leftBig ? "xl" : "xs"}"></span>
         </button>
         <div class="vs-mark" aria-hidden="true"><span class="vs-big"></span></div>
         <button type="button" class="size-btn" data-big="${!leftBig}" aria-label="Right">
-          <span class="size-dot ${leftBig ? "sm" : "lg"}"></span>
+          <span class="size-dot ${leftBig ? "xs" : "xl"}"></span>
         </button>
       </div>`;
-    $$(".size-btn", els.stage).forEach((btn) => {
+
+    const btns = $$(".size-btn", els.stage);
+    guide(btns.find((b) => b.dataset.big === "true"));
+
+    btns.forEach((btn) => {
       btn.addEventListener("click", () => judge(btn, btn.dataset.big === "true"));
     });
   }
 
-  /* 2 SORT — attributes (color) */
+  /* SORT — 2 chips, one-tap auto-place into matching bin */
   function renderSort() {
     const cA = COLORS[0];
     const cB = COLORS[1];
     const items = shuffle([
       { id: 1, color: cA },
-      { id: 2, color: cA },
-      { id: 3, color: cB },
-      { id: 4, color: cB },
+      { id: 2, color: cB },
     ]);
     const placed = {};
+
     els.prompt.textContent = "Sort";
     els.stage.innerHTML = `
       <div class="sort-layout">
@@ -520,9 +547,16 @@
         </div>
         <div class="sort-pool invite" role="group"></div>
       </div>`;
+
     const pool = $(".sort-pool", els.stage);
-    let selected = null;
-    let activeBin = null;
+    const binA = $(`.bin-drop[data-bin="A"]`, els.stage);
+    const binB = $(`.bin-drop[data-bin="B"]`, els.stage);
+
+    function guideNextChip() {
+      clearGuides();
+      const next = $$(".sort-chip", pool)[0];
+      if (next) guide(next);
+    }
 
     items.forEach((it) => {
       const chip = document.createElement("button");
@@ -533,68 +567,37 @@
       chip.dataset.id = String(it.id);
       chip.addEventListener("click", () => {
         if (state.locked) return;
-        $$(".sort-chip", pool).forEach((c) => c.classList.remove("selected"));
-        chip.classList.add("selected");
-        selected = chip;
-        tryPlace();
+        const bin = chip.dataset.color === cA ? binA : binB;
+        const ghost = document.createElement("span");
+        ghost.className = "sort-chip in-bin";
+        ghost.style.setProperty("--c", chip.dataset.color);
+        bin.appendChild(ghost);
+        placed[chip.dataset.id] = true;
+        chip.remove();
+        Sound.soft();
+        if (Object.keys(placed).length === items.length) {
+          clearGuides();
+          state.locked = true;
+          award(2);
+          setFeedback("good");
+          Sound.ok();
+          setTimeout(nextRound, 700);
+        } else {
+          guideNextChip();
+        }
       });
       pool.appendChild(chip);
     });
 
-    $$(".bin-drop", els.stage).forEach((bin) => {
-      bin.addEventListener("click", () => {
-        if (state.locked) return;
-        $$(".bin-drop", els.stage).forEach((b) => b.classList.remove("selected"));
-        bin.classList.add("selected");
-        activeBin = bin;
-        tryPlace();
-      });
-    });
-
-    function tryPlace() {
-      if (!selected || !activeBin) return;
-      const want = activeBin.dataset.bin === "A" ? cA : cB;
-      const ok = selected.dataset.color === want;
-      if (!ok) {
-        selected.classList.add("wrong");
-        activeBin.classList.add("wrong");
-        setFeedback("bad");
-        Sound.no();
-        setTimeout(() => {
-          selected.classList.remove("wrong", "selected");
-          activeBin.classList.remove("wrong", "selected");
-          selected = null;
-          activeBin = null;
-          setFeedback("");
-        }, 400);
-        return;
-      }
-      const ghost = document.createElement("span");
-      ghost.className = "sort-chip in-bin";
-      ghost.style.setProperty("--c", selected.dataset.color);
-      activeBin.appendChild(ghost);
-      placed[selected.dataset.id] = true;
-      selected.remove();
-      selected = null;
-      activeBin.classList.remove("selected");
-      activeBin = null;
-      Sound.soft();
-      if (Object.keys(placed).length === items.length) {
-        state.locked = true;
-        award(2);
-        setFeedback("good");
-        Sound.ok();
-        setTimeout(nextRound, 700);
-      }
-    }
+    guideNextChip();
   }
 
-  /* 3 FLASH — subitize */
+  /* FLASH — answer 1–3, 2 choices, 1400ms flash, guide after hide */
   function renderBurst() {
-    const max = Math.min(currentStage().max, 5);
+    const max = currentStage().max;
     const answer = randInt(1, max);
-    const choices = uniqueChoices(answer, 4, max);
-    const flashMs = answer <= 3 ? 900 : 1200;
+    const choices = uniqueChoices(answer, 2, max);
+    const flashMs = 1400;
     const stageId = currentStage().id;
 
     els.prompt.textContent = "Watch";
@@ -617,6 +620,7 @@
       btn.type = "button";
       btn.className = "num-key";
       btn.textContent = n;
+      btn.dataset.n = String(n);
       btn.disabled = true;
       btn.addEventListener("click", () => judge(btn, n === answer));
       pad.appendChild(btn);
@@ -633,21 +637,17 @@
       $$(".num-key", pad).forEach((b) => {
         b.disabled = false;
       });
+      const correct = $$(".num-key", pad).find((b) => Number(b.dataset.n) === answer);
+      if (correct) guide(correct);
       state.locked = false;
     }, flashMs + 400);
   }
 
-  /* 4 PATTERN — AB extend */
+  /* PATTERN — circle-square-circle → square; 2 choices */
   function renderPattern() {
-    const pair = shuffle([
-      { a: "circle", b: "square" },
-      { a: "square", b: "triangle" },
-      { a: "circle", b: "triangle" },
-    ])[0];
-    const seq = [pair.a, pair.b, pair.a, pair.b, pair.a];
-    const answer = pair.b;
-    const distractors = SHAPES.filter((s) => s !== answer);
-    const options = shuffle([answer, ...distractors]);
+    const seq = ["circle", "square", "circle"];
+    const answer = "square";
+    const options = shuffle(["square", "triangle"]);
 
     els.prompt.textContent = "Next";
     els.stage.innerHTML = `
@@ -655,6 +655,7 @@
         <div class="pattern-row" aria-label="Pattern">${seq.map((s) => shapeEl(s)).join("")}<span class="shape-slot pulse">?</span></div>
         <div class="shape-choices invite" role="group"></div>
       </div>`;
+
     const box = $(".shape-choices", els.stage);
     options.forEach((s) => {
       const btn = document.createElement("button");
@@ -662,15 +663,20 @@
       btn.className = "shape-btn";
       btn.innerHTML = shapeEl(s);
       btn.setAttribute("aria-label", s);
+      btn.dataset.shape = s;
       btn.addEventListener("click", () => judge(btn, s === answer));
       box.appendChild(btn);
     });
+
+    guide($$(".shape-btn", box).find((b) => b.dataset.shape === answer));
   }
 
-  /* 5 SHAPE — visual geometry */
+  /* SHAPE — 2 choices */
   function renderShape() {
     const answer = SHAPES[randInt(0, SHAPES.length - 1)];
-    const options = shuffle([...SHAPES]);
+    const distractor = shuffle(SHAPES.filter((s) => s !== answer))[0];
+    const options = shuffle([answer, distractor]);
+
     els.prompt.textContent = "Same shape";
     els.stage.innerHTML = `
       <div class="match-layout">
@@ -678,23 +684,27 @@
         <div class="hint-arrow" aria-hidden="true"></div>
         <div class="shape-choices invite" role="group"></div>
       </div>`;
+
     const box = $(".shape-choices", els.stage);
     options.forEach((s) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "shape-btn";
       btn.innerHTML = shapeEl(s);
+      btn.dataset.shape = s;
       btn.addEventListener("click", () => judge(btn, s === answer));
       box.appendChild(btn);
     });
+
+    guide($$(".shape-btn", box).find((b) => b.dataset.shape === answer));
   }
 
-  /* 6 MATCH — numeral ↔ quantity */
+  /* MATCH — 2 choices */
   function renderMatch() {
     const max = currentStage().max;
     const mode = Math.random() < 0.5 ? "numToQty" : "qtyToNum";
     const answer = randInt(1, max);
-    const options = uniqueChoices(answer, 3, max);
+    const options = uniqueChoices(answer, 2, max);
 
     if (mode === "numToQty") {
       els.prompt.textContent = `Find ${answer} dots`;
@@ -708,10 +718,12 @@
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "stone qty";
+        btn.dataset.n = String(n);
         btn.innerHTML = `<span class="mini-dots">${"<i></i>".repeat(n)}</span>`;
         btn.addEventListener("click", () => judge(btn, n === answer));
         box.appendChild(btn);
       });
+      guide($$(".stone", box).find((b) => Number(b.dataset.n) === answer));
     } else {
       els.prompt.textContent = "Which number?";
       els.stage.innerHTML = `
@@ -725,18 +737,17 @@
         btn.type = "button";
         btn.className = "stone";
         btn.textContent = n;
+        btn.dataset.n = String(n);
         btn.addEventListener("click", () => judge(btn, n === answer));
         box.appendChild(btn);
       });
+      guide($$(".stone", box).find((b) => Number(b.dataset.n) === answer));
     }
   }
 
-  /* 7 ORDER — stable order */
+  /* ORDER — always 1,2,3; guide next chip */
   function renderOrder() {
-    const max = currentStage().max;
-    const len = 4;
-    const start = randInt(1, max - len + 1);
-    const seq = Array.from({ length: len }, (_, i) => start + i);
+    const seq = [1, 2, 3];
     const pool = shuffle(seq);
 
     els.prompt.textContent = "Order";
@@ -758,12 +769,19 @@
     });
     slotsEl.children[0].classList.add("next");
 
+    function guideNext() {
+      clearGuides();
+      const expect = seq[filled.length];
+      const nextChip = $$(".slot-chip", poolEl).find((c) => Number(c.dataset.n) === expect);
+      if (nextChip) guide(nextChip);
+    }
+
     pool.forEach((n) => {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "slot-chip";
       chip.textContent = n;
-      if (n === seq[0]) chip.classList.add("hint");
+      chip.dataset.n = String(n);
       chip.addEventListener("click", () => {
         if (state.locked) return;
         const expect = seq[filled.length];
@@ -774,6 +792,7 @@
           setTimeout(() => chip.classList.remove("wrong"), 350);
           return;
         }
+        clearGuides();
         chip.remove();
         filled.push(n);
         const slot = slotsEl.children[filled.length - 1];
@@ -782,9 +801,7 @@
         slot.textContent = n;
         if (filled.length < seq.length) {
           slotsEl.children[filled.length].classList.add("next");
-          $$(".slot-chip", poolEl).forEach((c) => c.classList.remove("hint"));
-          const nextChip = $$(".slot-chip", poolEl).find((c) => Number(c.textContent) === seq[filled.length]);
-          if (nextChip) nextChip.classList.add("hint");
+          guideNext();
           setFeedback("good");
           Sound.soft();
           setTimeout(() => setFeedback(""), 280);
@@ -798,13 +815,15 @@
       });
       poolEl.appendChild(chip);
     });
+
+    guideNext();
   }
 
-  /* 8 FIND — numeral recognition */
+  /* FIND — 2 numbers; sayNumber; guide correct */
   function renderPond() {
     const max = currentStage().max;
     const answer = randInt(1, max);
-    const fishNums = uniqueChoices(answer, Math.min(5, max), max);
+    const fishNums = uniqueChoices(answer, 2, max);
 
     els.prompt.textContent = `Find ${answer}`;
     els.stage.innerHTML = `
@@ -827,19 +846,26 @@
       f.type = "button";
       f.className = "fish";
       f.textContent = n;
+      f.dataset.n = String(n);
       f.addEventListener("click", () => judge(f, n === answer));
       pond.appendChild(f);
     });
+
+    guide($$(".fish", pond).find((f) => Number(f.dataset.n) === answer));
   }
 
-  /* 9 JOIN — part–whole / early addition */
+  /* JOIN — only [1,1][1,2][2,1][2,2]; 2 choices */
   function renderJoin() {
-    const max = currentStage().max;
-    let left = randInt(1, 3);
-    let right = randInt(1, Math.min(3, max - left));
-    if (left + right < 2) right = 2;
+    const pairs = [
+      [1, 1],
+      [1, 2],
+      [2, 1],
+      [2, 2],
+    ];
+    const [left, right] = pairs[randInt(0, pairs.length - 1)];
     const answer = left + right;
-    const choices = uniqueChoices(answer, 4, Math.min(max + 2, 8));
+    const max = Math.max(currentStage().max, answer);
+    const choices = uniqueChoices(answer, 2, max);
 
     els.prompt.textContent = "Join";
     els.stage.innerHTML = `
@@ -853,106 +879,122 @@
         </div>
         <div class="num-pad invite" role="group"></div>
       </div>`;
+
     const pad = $(".num-pad", els.stage);
     choices.forEach((n) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "num-key";
       btn.textContent = n;
+      btn.dataset.n = String(n);
       btn.addEventListener("click", () => judge(btn, n === answer));
       pad.appendChild(btn);
     });
+
+    guide($$(".num-key", pad).find((b) => Number(b.dataset.n) === answer));
   }
 
-  /* COUNT — one-to-one + cardinality */
+  /* COUNT — 2–3 dots; guide moves to next untapped */
   function renderCount() {
-    const n = randInt(3, Math.min(currentStage().max, 5));
+    const n = randInt(2, Math.min(currentStage().max, 3));
     let tapped = 0;
+
     els.prompt.textContent = "Count";
     els.stage.innerHTML = `
       <div class="count-layout">
         <div class="count-field invite" role="group" aria-label="Tap each"></div>
         <div class="count-total" id="count-total" aria-live="polite"></div>
       </div>`;
+
     const field = $(".count-field", els.stage);
     const total = $("#count-total", els.stage);
+
+    function guideNext() {
+      clearGuides();
+      const next = $$(".count-dot:not(.on)", field)[0];
+      if (next) guide(next);
+    }
 
     for (let i = 0; i < n; i++) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "count-dot";
       btn.setAttribute("aria-label", "item");
-      if (i === 0) btn.innerHTML = handSvg();
       btn.addEventListener("click", () => {
         if (state.locked || btn.classList.contains("on")) return;
+        clearGuides();
         btn.classList.add("on");
-        btn.innerHTML = "";
         tapped += 1;
         total.textContent = String(tapped);
         sayNumber(tapped);
         Sound.soft();
-        const next = $$(".count-dot:not(.on)", field)[0];
-        if (next) next.innerHTML = handSvg();
         if (tapped === n) {
           state.locked = true;
           award(1);
           setFeedback("good");
           Sound.ok();
           setTimeout(nextRound, 900);
+        } else {
+          guideNext();
         }
       });
       field.appendChild(btn);
     }
+
+    guideNext();
   }
 
-  /* TAKE — separating / early subtraction */
+  /* TAKE — start 3 or 4; clear remove; 2 choices */
   function renderTake() {
-    const max = currentStage().max;
-    const start = randInt(3, max);
-    const remove = randInt(1, start - 1);
+    const start = Math.random() < 0.5 ? 3 : 4;
+    const remove = start === 3 ? 1 : randInt(1, 2);
     const answer = start - remove;
-    const choices = uniqueChoices(answer, 4, max);
+    const max = currentStage().max;
+    const choices = uniqueChoices(answer, 2, max);
 
     els.prompt.textContent = "Take";
     els.stage.innerHTML = `
       <div class="join-layout">
         <div class="take-board" aria-label="Objects">
           ${Array.from({ length: start }, (_, i) =>
-            `<span class="seed take-seed${i >= answer ? "" : ""}" data-i="${i}"></span>`
+            `<span class="seed take-seed" data-i="${i}"></span>`
           ).join("")}
         </div>
         <div class="num-pad invite" role="group"></div>
       </div>`;
 
     const seeds = $$(".take-seed", els.stage);
-    state.locked = true;
-    setTimeout(() => {
-      seeds.forEach((s, i) => {
-        if (i >= answer) s.classList.add("gone");
-      });
-      state.locked = false;
-    }, 700);
-
     const pad = $(".num-pad", els.stage);
+
     choices.forEach((n) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "num-key";
       btn.textContent = n;
+      btn.dataset.n = String(n);
+      btn.disabled = true;
       btn.addEventListener("click", () => judge(btn, n === answer));
       pad.appendChild(btn);
     });
+
+    state.locked = true;
+    setTimeout(() => {
+      seeds.forEach((s, i) => {
+        if (i >= answer) s.classList.add("gone");
+      });
+      $$(".num-key", pad).forEach((b) => {
+        b.disabled = false;
+      });
+      guide($$(".num-key", pad).find((b) => Number(b.dataset.n) === answer));
+      state.locked = false;
+    }, 700);
   }
 
-  /* SAME — conservation of number */
+  /* SAME — always equal; only = is correct */
   function renderSame() {
-    const n = randInt(3, 5);
-    const equal = Math.random() < 0.75;
+    const n = randInt(2, 4);
     const left = n;
-    let right = equal ? n : n + (Math.random() < 0.5 ? 1 : -1);
-    if (right < 2) right = 2;
-    if (!equal && right === left) right = left + 1;
-    const answer = left === right ? "eq" : left > right ? "L" : "R";
+    const right = n;
 
     els.prompt.textContent = "Same?";
     els.stage.innerHTML = `
@@ -961,17 +1003,18 @@
           <button type="button" class="pile-btn tight-pack" data-pick="L" aria-label="Left">${dotsHtml(left, "seed")}</button>
           <button type="button" class="pile-btn spread-pack" data-pick="R" aria-label="Right">${dotsHtml(right, "seed")}</button>
         </div>
-        <button type="button" class="eq-btn ${answer === "eq" ? "pulse glow" : ""}" data-pick="eq" aria-label="Same">=</button>
+        <button type="button" class="eq-btn pulse glow" data-pick="eq" aria-label="Same">=</button>
       </div>`;
 
-    // If equal: brief rearrange animation so kid sees spacing change isn't amount change
-    if (left === right) {
-      const rightPile = $(".spread-pack", els.stage);
-      rightPile.classList.add("was-tight");
-      setTimeout(() => rightPile.classList.remove("was-tight"), 600);
-    }
+    const rightPile = $(".spread-pack", els.stage);
+    rightPile.classList.add("was-tight");
+    setTimeout(() => rightPile.classList.remove("was-tight"), 600);
+
+    const eqBtn = $(".eq-btn", els.stage);
+    guide(eqBtn);
+
     $$("[data-pick]", els.stage).forEach((btn) => {
-      btn.addEventListener("click", () => judge(btn, btn.dataset.pick === answer));
+      btn.addEventListener("click", () => judge(btn, btn.dataset.pick === "eq"));
     });
   }
 
@@ -979,6 +1022,7 @@
     if (state.locked) return;
     state.locked = true;
     if (ok) {
+      clearGuides();
       el.classList.add("correct");
       award(1);
       setFeedback("good");

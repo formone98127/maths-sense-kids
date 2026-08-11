@@ -1543,6 +1543,65 @@ button {
   height: 64px;
 }
 
+.size-dot.xs {
+  width: 18px;
+  height: 18px;
+  opacity: 0.4;
+}
+
+.size-dot.xl {
+  width: 88px;
+  height: 88px;
+}
+
+.guide {
+  position: relative;
+  outline: 3px solid var(--accent) !important;
+  outline-offset: 4px;
+  background: var(--accent-soft) !important;
+  z-index: 2;
+  animation: guide-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes guide-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.bin-drop.flash-ok {
+  border-style: solid;
+  background: color-mix(in srgb, var(--c) 28%, #fff);
+}
+
+.sort-arrows {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  height: 18px;
+}
+
+.sort-arrows span {
+  width: 2px;
+  height: 16px;
+  background: var(--mute);
+  opacity: 0.35;
+  position: relative;
+}
+
+.sort-arrows span::after {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -2px;
+  border: 6px solid transparent;
+  border-bottom-color: var(--mute);
+}
+
 .viz-size {
   display: flex;
   align-items: center;
