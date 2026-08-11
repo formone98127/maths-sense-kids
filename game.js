@@ -121,6 +121,7 @@
     let ctx = null;
     let master = null;
     let enabled = localStorage.getItem("cg_sound") !== "0";
+    let unlockPromise = null;
 
     function ensure() {
       if (!ctx) {
@@ -128,68 +129,92 @@
         if (!AC) return null;
         ctx = new AC();
         master = ctx.createGain();
-        master.gain.value = 0.18;
+        master.gain.value = 0.45;
         master.connect(ctx.destination);
       }
-      if (ctx.state === "suspended") ctx.resume();
       return ctx;
     }
 
-    function tone(freq, when, dur, type = "sine", gain = 0.22) {
+    function unlock() {
       const c = ensure();
-      if (!c || !enabled) return;
-      const t0 = c.currentTime + when;
+      if (!c) return Promise.resolve(false);
+      if (c.state === "running") return Promise.resolve(true);
+      if (!unlockPromise) {
+        unlockPromise = c
+          .resume()
+          .then(() => true)
+          .catch(() => false)
+          .finally(() => {
+            unlockPromise = null;
+          });
+      }
+      return unlockPromise;
+    }
+
+    function tone(freq, when, dur, type = "sine", gain = 0.35) {
+      const c = ensure();
+      if (!c || !enabled || c.state !== "running") return;
+      const t0 = c.currentTime + Math.max(0, when);
       const osc = c.createOscillator();
       const g = c.createGain();
-      const f = c.createBiquadFilter();
       osc.type = type;
-      osc.frequency.setValueAtTime(freq, t0);
-      f.type = "lowpass";
-      f.frequency.setValueAtTime(1400, t0);
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(gain, t0 + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-      osc.connect(f);
-      f.connect(g);
+      osc.frequency.value = freq;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(gain, t0 + 0.02);
+      g.gain.linearRampToValueAtTime(gain * 0.7, t0 + dur * 0.45);
+      g.gain.linearRampToValueAtTime(0, t0 + dur);
+      osc.connect(g);
       g.connect(master);
       osc.start(t0);
-      osc.stop(t0 + dur + 0.02);
+      osc.stop(t0 + dur + 0.05);
+    }
+
+    function play(fn) {
+      if (!enabled) return;
+      unlock().then((ok) => {
+        if (!ok || !enabled) return;
+        fn();
+      });
     }
 
     return {
-      unlock() {
-        ensure();
-      },
+      unlock,
       setEnabled(on) {
-        enabled = on;
-        localStorage.setItem("cg_sound", on ? "1" : "0");
+        enabled = !!on;
+        localStorage.setItem("cg_sound", enabled ? "1" : "0");
       },
       isEnabled() {
         return enabled;
       },
       ok() {
-        // soft major third
-        tone(392, 0, 0.28, "sine", 0.16);
-        tone(493.88, 0.08, 0.38, "sine", 0.14);
+        play(() => {
+          tone(392, 0, 0.35, "sine", 0.32);
+          tone(523.25, 0.1, 0.45, "sine", 0.28);
+        });
       },
       soft() {
-        tone(440, 0, 0.16, "sine", 0.1);
+        play(() => tone(440, 0, 0.2, "sine", 0.22));
       },
       no() {
-        // calm low note — not a buzz
-        tone(196, 0, 0.32, "sine", 0.12);
-        tone(185, 0.05, 0.28, "triangle", 0.05);
+        play(() => {
+          tone(220, 0, 0.35, "sine", 0.24);
+          tone(196, 0.06, 0.3, "sine", 0.16);
+        });
       },
       stage() {
-        tone(329.63, 0, 0.3, "sine", 0.12);
-        tone(415.3, 0.14, 0.36, "sine", 0.11);
-        tone(523.25, 0.28, 0.45, "sine", 0.1);
+        play(() => {
+          tone(329.63, 0, 0.35, "sine", 0.24);
+          tone(415.3, 0.16, 0.4, "sine", 0.22);
+          tone(523.25, 0.32, 0.5, "sine", 0.2);
+        });
       },
       done() {
-        tone(349.23, 0, 0.35, "sine", 0.12);
-        tone(440, 0.18, 0.4, "sine", 0.11);
-        tone(523.25, 0.36, 0.55, "sine", 0.1);
-        tone(659.25, 0.52, 0.7, "sine", 0.08);
+        play(() => {
+          tone(349.23, 0, 0.4, "sine", 0.24);
+          tone(440, 0.2, 0.45, "sine", 0.22);
+          tone(523.25, 0.4, 0.55, "sine", 0.2);
+          tone(659.25, 0.58, 0.7, "sine", 0.16);
+        });
       },
     };
   })();
@@ -219,13 +244,12 @@
 
   function startAdventure() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
-    Sound.unlock();
     state.stageIndex = 0;
     state.roundInStage = 0;
     state.roundsDone = 0;
     state.correct = 0;
     state.locked = false;
-    showStageIntro();
+    Sound.unlock().then(() => showStageIntro());
   }
 
   function showStageIntro() {
