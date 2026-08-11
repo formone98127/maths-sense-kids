@@ -1173,6 +1173,178 @@ button {
   text-align: center;
 }
 
+.size-row .size-btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 14px;
+  min-height: 140px;
+  display: grid;
+  place-items: center;
+}
+
+.size-btn.correct {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.size-btn.wrong {
+  background: #f3e6e1;
+  border-color: var(--bad);
+}
+
+.size-dot {
+  display: block;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.size-dot.sm {
+  width: 28px;
+  height: 28px;
+  opacity: 0.55;
+}
+
+.size-dot.lg {
+  width: 64px;
+  height: 64px;
+}
+
+.viz-size {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.viz-count {
+  display: flex;
+  gap: 12px;
+}
+
+.tap-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+}
+
+.tap-dot.on {
+  background: var(--ink);
+}
+
+.count-layout {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  width: 100%;
+}
+
+.count-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+}
+
+.count-dot {
+  appearance: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: #fff;
+  padding: 0;
+}
+
+.count-dot.on {
+  background: var(--ink);
+}
+
+.count-total {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  min-height: 1.2em;
+  color: var(--ink);
+}
+
+.take-board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  min-height: 56px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  width: 100%;
+}
+
+.take-seed {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.take-seed.gone {
+  opacity: 0.15;
+  transform: scale(0.7);
+  text-decoration: line-through;
+}
+
+.same-layout {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  justify-items: center;
+}
+
+.pile-btn.tight-pack {
+  gap: 6px;
+  max-width: 120px;
+}
+
+.pile-btn.spread-pack {
+  gap: 22px;
+  max-width: 220px;
+}
+
+.eq-btn {
+  appearance: none;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--ink);
+}
+
+.eq-btn.correct {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.eq-btn.wrong {
+  background: #f3e6e1;
+  border-color: var(--bad);
+}
+
+.viz-same {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.viz-same .pile.tight {
+  gap: 4px;
+  max-width: 56px;
+}
+
+.viz-same .pile.spread {
+  gap: 14px;
+  max-width: 100px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

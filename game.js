@@ -1,19 +1,22 @@
 (() => {
   /**
-   * Stage path follows early-math trajectories (CPA / Clements–Sarama):
-   * perceptual magnitude → attributes → subitizing → patterning → shape →
-   * numeral–quantity → stable order → numeral recognition → part–whole join
+   * Stage path: perceptual → attributes → subitizing → 1:1 count → pattern/shape →
+   * numeral link → order → recognition → join/take → conservation
    */
   const STAGES = [
-    { id: "more", name: "More", say: "Tap the side with more.", rounds: 3, max: 5, icon: "more" },
+    { id: "more", name: "More", say: "Tap the side with more.", rounds: 2, max: 5, icon: "more" },
+    { id: "size", name: "Size", say: "Tap the bigger one.", rounds: 2, max: 5, icon: "size" },
     { id: "sort", name: "Sort", say: "Put each with its match.", rounds: 2, max: 5, icon: "sort" },
-    { id: "burst", name: "Flash", say: "Look carefully. How many?", rounds: 3, max: 5, icon: "flash" },
-    { id: "pattern", name: "Pattern", say: "What comes next?", rounds: 3, max: 5, icon: "pattern" },
-    { id: "shape", name: "Shape", say: "Find the same shape.", rounds: 3, max: 5, icon: "shape" },
-    { id: "match", name: "Match", say: "Match the same amount.", rounds: 3, max: 5, icon: "match" },
+    { id: "burst", name: "Flash", say: "Look carefully. How many?", rounds: 2, max: 5, icon: "flash" },
+    { id: "count", name: "Count", say: "Tap each one.", rounds: 2, max: 5, icon: "count" },
+    { id: "pattern", name: "Pattern", say: "What comes next?", rounds: 2, max: 5, icon: "pattern" },
+    { id: "shape", name: "Shape", say: "Find the same shape.", rounds: 2, max: 5, icon: "shape" },
+    { id: "match", name: "Match", say: "Match the same amount.", rounds: 2, max: 5, icon: "match" },
     { id: "order", name: "Order", say: "Small to big.", rounds: 2, max: 5, icon: "order" },
-    { id: "pond", name: "Find", say: "Listen. Tap the number.", rounds: 3, max: 5, icon: "find" },
-    { id: "join", name: "Join", say: "Put together. How many?", rounds: 3, max: 5, icon: "join" },
+    { id: "pond", name: "Find", say: "Listen. Tap the number.", rounds: 2, max: 5, icon: "find" },
+    { id: "join", name: "Join", say: "Put together. How many?", rounds: 2, max: 5, icon: "join" },
+    { id: "take", name: "Take", say: "Some go away. How many left?", rounds: 2, max: 5, icon: "take" },
+    { id: "same", name: "Same", say: "Do they match? Tap the equal sign.", rounds: 2, max: 5, icon: "same" },
   ];
 
   const TOTAL_ROUNDS = STAGES.reduce((n, s) => n + s.rounds, 0);
@@ -257,14 +260,18 @@
   function setCue(kind) {
     const icons = {
       more: `<svg viewBox="0 0 72 40" width="78" height="42"><circle cx="14" cy="20" r="4" fill="currentColor"/><circle cx="48" cy="12" r="4" fill="currentColor"/><circle cx="60" cy="20" r="4" fill="currentColor"/><circle cx="48" cy="28" r="4" fill="currentColor"/><path d="M28 20h8" stroke="currentColor" stroke-width="2"/><path d="M34 14l8 6-8 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+      size: `<svg viewBox="0 0 64 40" width="70" height="42"><circle cx="16" cy="22" r="8" fill="currentColor" opacity=".45"/><circle cx="46" cy="20" r="14" fill="currentColor"/></svg>`,
       sort: `<svg viewBox="0 0 64 40" width="70" height="42"><circle cx="14" cy="14" r="6" fill="currentColor" opacity=".35"/><circle cx="14" cy="28" r="6" fill="currentColor"/><rect x="40" y="8" width="14" height="14" rx="2" fill="currentColor" opacity=".35"/><rect x="40" y="24" width="14" height="14" rx="2" fill="currentColor"/></svg>`,
       flash: `<svg viewBox="0 0 56 40" width="64" height="42"><ellipse cx="28" cy="20" rx="18" ry="12" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="28" cy="20" r="5" fill="currentColor"/></svg>`,
+      count: `<svg viewBox="0 0 72 40" width="78" height="42"><circle cx="14" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="36" cy="20" r="6" fill="currentColor"/><circle cx="58" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M36 8v6" stroke="currentColor" stroke-width="2"/></svg>`,
       pattern: `<svg viewBox="0 0 80 40" width="86" height="42"><circle cx="12" cy="20" r="7" fill="currentColor"/><rect x="28" y="13" width="14" height="14" fill="currentColor"/><circle cx="56" cy="20" r="7" fill="currentColor"/><text x="74" y="25" font-size="16" fill="currentColor">?</text></svg>`,
       shape: `<svg viewBox="0 0 64 40" width="70" height="42"><circle cx="16" cy="20" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M38 28L48 10l10 18H38z" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
       match: `<svg viewBox="0 0 64 40" width="72" height="42"><circle cx="14" cy="20" r="10" fill="none" stroke="currentColor" stroke-width="2"/><text x="14" y="25" text-anchor="middle" font-size="14" font-family="Instrument Serif, serif" fill="currentColor">2</text><path d="M28 20h8" stroke="currentColor" stroke-width="2"/><circle cx="50" cy="14" r="3" fill="currentColor"/><circle cx="50" cy="26" r="3" fill="currentColor"/></svg>`,
       order: `<svg viewBox="0 0 72 40" width="80" height="42"><text x="8" y="26" font-size="16" font-family="Instrument Serif, serif" fill="currentColor">1</text><text x="28" y="26" font-size="16" font-family="Instrument Serif, serif" fill="currentColor">2</text><text x="48" y="26" font-size="16" font-family="Instrument Serif, serif" fill="currentColor">3</text><path d="M52 12l8 8-8 8" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
       find: `<svg viewBox="0 0 48 40" width="56" height="42"><path d="M10 14v12h6l8 6V8l-8 6H10z" fill="currentColor"/><path d="M30 12a8 8 0 0 1 0 16" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
       join: `<svg viewBox="0 0 72 40" width="78" height="42"><circle cx="12" cy="20" r="4" fill="currentColor"/><circle cx="24" cy="20" r="4" fill="currentColor"/><text x="36" y="25" font-size="16" fill="currentColor">+</text><circle cx="50" cy="20" r="4" fill="currentColor"/><text x="64" y="25" font-size="16" fill="currentColor">?</text></svg>`,
+      take: `<svg viewBox="0 0 72 40" width="78" height="42"><circle cx="12" cy="20" r="4" fill="currentColor"/><circle cx="24" cy="20" r="4" fill="currentColor"/><circle cx="36" cy="20" r="4" fill="currentColor" opacity=".25"/><text x="50" y="25" font-size="16" fill="currentColor">→</text><circle cx="64" cy="20" r="4" fill="currentColor"/></svg>`,
+      same: `<svg viewBox="0 0 72 40" width="78" height="42"><circle cx="12" cy="14" r="3" fill="currentColor"/><circle cx="22" cy="14" r="3" fill="currentColor"/><circle cx="32" cy="14" r="3" fill="currentColor"/><circle cx="12" cy="28" r="3" fill="currentColor"/><circle cx="28" cy="28" r="3" fill="currentColor"/><circle cx="44" cy="28" r="3" fill="currentColor"/><text x="60" y="24" font-size="18" fill="currentColor">=</text></svg>`,
     };
     els.cue.innerHTML = icons[kind] || "";
   }
@@ -273,14 +280,18 @@
     return (
       {
         more: `<div class="viz-more"><span class="pile small">${dotsHtml(2, "seed")}</span><span class="viz-arrow"></span><span class="pile">${dotsHtml(4, "seed")}</span></div>`,
+        size: `<div class="viz-size"><span class="size-dot sm"></span><span class="size-dot lg"></span></div>`,
         sort: `<div class="viz-sort"><span class="bin" style="--c:${COLORS[0]}"></span><span class="bin" style="--c:${COLORS[1]}"></span></div>`,
         flash: `<div class="viz-flash"><span class="viz-eye"></span><span class="viz-dots blink"><i></i><i></i><i></i><i></i></span></div>`,
+        count: `<div class="viz-count"><span class="tap-dot"></span><span class="tap-dot on"></span><span class="tap-dot"></span></div>`,
         pattern: `<div class="viz-pattern">${shapeEl("circle")}${shapeEl("square")}${shapeEl("circle")}<span class="q">?</span></div>`,
         shape: `<div class="viz-shape">${shapeEl("triangle")}</div>`,
         match: `<div class="viz-match"><span class="viz-num">3</span><span class="viz-arrow"></span><span class="viz-dots"><i></i><i></i><i></i></span></div>`,
         order: `<div class="viz-order"><span>1</span><span>2</span><span>3</span><span>4</span></div>`,
         find: `<div class="viz-find"><span class="viz-ear"></span><span class="viz-num big">2</span></div>`,
         join: `<div class="viz-join"><span class="pile">${dotsHtml(2, "seed")}</span><span class="plus">+</span><span class="pile">${dotsHtml(3, "seed")}</span></div>`,
+        take: `<div class="viz-join"><span class="pile">${dotsHtml(4, "seed")}</span><span class="plus">−</span><span class="pile">${dotsHtml(1, "seed")}</span></div>`,
+        same: `<div class="viz-same"><span class="pile tight">${dotsHtml(3, "seed")}</span><span class="plus">=</span><span class="pile spread">${dotsHtml(3, "seed")}</span></div>`,
       }[kind] || ""
     );
   }
@@ -346,14 +357,18 @@
     (
       {
         more: renderMore,
+        size: renderSize,
         sort: renderSort,
         burst: renderBurst,
+        count: renderCount,
         pattern: renderPattern,
         shape: renderShape,
         match: renderMatch,
         order: renderOrder,
         pond: renderPond,
         join: renderJoin,
+        take: renderTake,
+        same: renderSame,
       }[s.id] || renderMatch
     )();
   }
@@ -377,6 +392,25 @@
         const ok = (btn.dataset.side === "L") === leftMore;
         judge(btn, ok);
       });
+    });
+  }
+
+  /* SIZE — qualitative comparison */
+  function renderSize() {
+    const leftBig = Math.random() < 0.5;
+    els.prompt.textContent = "Bigger";
+    speak("Tap the bigger one.");
+    els.stage.innerHTML = `
+      <div class="compare-row invite size-row">
+        <button type="button" class="size-btn" data-big="${leftBig}" aria-label="Left">
+          <span class="size-dot ${leftBig ? "lg" : "sm"}"></span>
+        </button>
+        <button type="button" class="size-btn" data-big="${!leftBig}" aria-label="Right">
+          <span class="size-dot ${leftBig ? "sm" : "lg"}"></span>
+        </button>
+      </div>`;
+    $$(".size-btn", els.stage).forEach((btn) => {
+      btn.addEventListener("click", () => judge(btn, btn.dataset.big === "true"));
     });
   }
 
@@ -746,6 +780,111 @@
       btn.textContent = n;
       btn.addEventListener("click", () => judge(btn, n === answer));
       pad.appendChild(btn);
+    });
+  }
+
+  /* COUNT — one-to-one + cardinality */
+  function renderCount() {
+    const n = randInt(3, Math.min(currentStage().max, 5));
+    let tapped = 0;
+    els.prompt.textContent = "Count";
+    speak("Tap each one.");
+    els.stage.innerHTML = `
+      <div class="count-layout">
+        <div class="count-field invite" role="group" aria-label="Tap each"></div>
+        <div class="count-total" id="count-total" aria-live="polite"></div>
+      </div>`;
+    const field = $(".count-field", els.stage);
+    const total = $("#count-total", els.stage);
+
+    for (let i = 0; i < n; i++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "count-dot";
+      btn.setAttribute("aria-label", "item");
+      btn.addEventListener("click", () => {
+        if (state.locked || btn.classList.contains("on")) return;
+        btn.classList.add("on");
+        tapped += 1;
+        total.textContent = String(tapped);
+        sayNumber(tapped);
+        Sound.soft();
+        if (tapped === n) {
+          state.locked = true;
+          award(1);
+          setFeedback("good");
+          Sound.ok();
+          setTimeout(() => speak(WORD[n] || String(n)), 200);
+          setTimeout(nextRound, 900);
+        }
+      });
+      field.appendChild(btn);
+    }
+  }
+
+  /* TAKE — separating / early subtraction */
+  function renderTake() {
+    const max = currentStage().max;
+    const start = randInt(3, max);
+    const remove = randInt(1, start - 1);
+    const answer = start - remove;
+    const choices = uniqueChoices(answer, 4, max);
+
+    els.prompt.textContent = "Take";
+    speak("How many left?");
+    els.stage.innerHTML = `
+      <div class="join-layout">
+        <div class="take-board" aria-label="Objects">
+          ${Array.from({ length: start }, (_, i) =>
+            `<span class="seed take-seed${i >= answer ? "" : ""}" data-i="${i}"></span>`
+          ).join("")}
+        </div>
+        <div class="num-pad invite" role="group"></div>
+      </div>`;
+
+    const seeds = $$(".take-seed", els.stage);
+    state.locked = true;
+    setTimeout(() => {
+      seeds.forEach((s, i) => {
+        if (i >= answer) s.classList.add("gone");
+      });
+      state.locked = false;
+    }, 700);
+
+    const pad = $(".num-pad", els.stage);
+    choices.forEach((n) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "num-key";
+      btn.textContent = n;
+      btn.addEventListener("click", () => judge(btn, n === answer));
+      pad.appendChild(btn);
+    });
+  }
+
+  /* SAME — conservation of number */
+  function renderSame() {
+    const n = randInt(3, 5);
+    const equal = Math.random() < 0.75;
+    const left = n;
+    let right = equal ? n : n + (Math.random() < 0.5 ? 1 : -1);
+    if (right < 2) right = 2;
+    if (!equal && right === left) right = left + 1;
+    const answer = left === right ? "eq" : left > right ? "L" : "R";
+
+    els.prompt.textContent = "Same?";
+    speak(left === right ? "Are they the same?" : "Which has more?");
+    els.stage.innerHTML = `
+      <div class="same-layout">
+        <div class="compare-row">
+          <button type="button" class="pile-btn tight-pack" data-pick="L" aria-label="Left">${dotsHtml(left, "seed")}</button>
+          <button type="button" class="pile-btn spread-pack" data-pick="R" aria-label="Right">${dotsHtml(right, "seed")}</button>
+        </div>
+        <button type="button" class="eq-btn pulse" data-pick="eq" aria-label="Same">=</button>
+      </div>`;
+
+    $$("[data-pick]", els.stage).forEach((btn) => {
+      btn.addEventListener("click", () => judge(btn, btn.dataset.pick === answer));
     });
   }
 
