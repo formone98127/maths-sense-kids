@@ -257,43 +257,131 @@
     return `<span class="shape ${kind}" style="--c:${color || "currentColor"}"></span>`;
   }
 
-  function setCue(kind) {
-    const icons = {
-      more: `<svg viewBox="0 0 72 40" width="78" height="42"><circle cx="14" cy="20" r="4" fill="currentColor"/><circle cx="48" cy="12" r="4" fill="currentColor"/><circle cx="60" cy="20" r="4" fill="currentColor"/><circle cx="48" cy="28" r="4" fill="currentColor"/><path d="M28 20h8" stroke="currentColor" stroke-width="2"/><path d="M34 14l8 6-8 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
-      size: `<svg viewBox="0 0 64 40" width="70" height="42"><circle cx="16" cy="22" r="8" fill="currentColor" opacity=".45"/><circle cx="46" cy="20" r="14" fill="currentColor"/></svg>`,
-      sort: `<svg viewBox="0 0 64 40" width="70" height="42"><circle cx="14" cy="14" r="6" fill="currentColor" opacity=".35"/><circle cx="14" cy="28" r="6" fill="currentColor"/><rect x="40" y="8" width="14" height="14" rx="2" fill="currentColor" opacity=".35"/><rect x="40" y="24" width="14" height="14" rx="2" fill="currentColor"/></svg>`,
-      flash: `<svg viewBox="0 0 56 40" width="64" height="42"><ellipse cx="28" cy="20" rx="18" ry="12" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="28" cy="20" r="5" fill="currentColor"/></svg>`,
-      count: `<svg viewBox="0 0 72 40" width="78" height="42"><circle cx="14" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="36" cy="20" r="6" fill="currentColor"/><circle cx="58" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M36 8v6" stroke="currentColor" stroke-width="2"/></svg>`,
-      pattern: `<svg viewBox="0 0 80 40" width="86" height="42"><circle cx="12" cy="20" r="7" fill="currentColor"/><rect x="28" y="13" width="14" height="14" fill="currentColor"/><circle cx="56" cy="20" r="7" fill="currentColor"/><text x="74" y="25" font-size="16" fill="currentColor">?</text></svg>`,
-      shape: `<svg viewBox="0 0 64 40" width="70" height="42"><circle cx="16" cy="20" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M38 28L48 10l10 18H38z" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
-      match: `<svg viewBox="0 0 64 40" width="72" height="42"><circle cx="14" cy="20" r="10" fill="none" stroke="currentColor" stroke-width="2"/><text x="14" y="25" text-anchor="middle" font-size="14" font-family="Instrument Serif, serif" fill="currentColor">2</text><path d="M28 20h8" stroke="currentColor" stroke-width="2"/><circle cx="50" cy="14" r="3" fill="currentColor"/><circle cx="50" cy="26" r="3" fill="currentColor"/></svg>`,
-      order: `<svg viewBox="0 0 72 40" width="80" height="42"><text x="8" y="26" font-size="16" font-family="Instrument Serif, serif" fill="currentColor">1</text><text x="28" y="26" font-size="16" font-family="Instrument Serif, serif" fill="currentColor">2</text><text x="48" y="26" font-size="16" font-family="Instrument Serif, serif" fill="currentColor">3</text><path d="M52 12l8 8-8 8" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
-      find: `<svg viewBox="0 0 48 40" width="56" height="42"><path d="M10 14v12h6l8 6V8l-8 6H10z" fill="currentColor"/><path d="M30 12a8 8 0 0 1 0 16" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
-      join: `<svg viewBox="0 0 72 40" width="78" height="42"><circle cx="12" cy="20" r="4" fill="currentColor"/><circle cx="24" cy="20" r="4" fill="currentColor"/><text x="36" y="25" font-size="16" fill="currentColor">+</text><circle cx="50" cy="20" r="4" fill="currentColor"/><text x="64" y="25" font-size="16" fill="currentColor">?</text></svg>`,
-      take: `<svg viewBox="0 0 72 40" width="78" height="42"><circle cx="12" cy="20" r="4" fill="currentColor"/><circle cx="24" cy="20" r="4" fill="currentColor"/><circle cx="36" cy="20" r="4" fill="currentColor" opacity=".25"/><text x="50" y="25" font-size="16" fill="currentColor">→</text><circle cx="64" cy="20" r="4" fill="currentColor"/></svg>`,
-      same: `<svg viewBox="0 0 72 40" width="78" height="42"><circle cx="12" cy="14" r="3" fill="currentColor"/><circle cx="22" cy="14" r="3" fill="currentColor"/><circle cx="32" cy="14" r="3" fill="currentColor"/><circle cx="12" cy="28" r="3" fill="currentColor"/><circle cx="28" cy="28" r="3" fill="currentColor"/><circle cx="44" cy="28" r="3" fill="currentColor"/><text x="60" y="24" font-size="18" fill="currentColor">=</text></svg>`,
+  function handSvg() {
+    return `<span class="hand" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M9 11V5a1 1 0 0 1 2 0v4h1V3a1 1 0 0 1 2 0v6h1V4a1 1 0 0 1 2 0v8h1V7a1 1 0 1 1 2 0v9a5 5 0 0 1-5 5h-2.2A5.8 5.8 0 0 1 8 15.2V11z"/></svg></span>`;
+  }
+
+  function howHtml(kind) {
+    /* Big visual “how” demos — no words required */
+    const demos = {
+      more: `
+        <div class="how-demo">
+          <div class="how-pair">
+            <div class="how-pile">${dotsHtml(2, "seed")}</div>
+            <div class="how-pile how-correct glow">${dotsHtml(5, "seed")}${handSvg()}</div>
+          </div>
+        </div>`,
+      size: `
+        <div class="how-demo">
+          <div class="how-pair">
+            <div class="how-box"><span class="size-dot sm"></span></div>
+            <div class="how-box how-correct glow"><span class="size-dot lg"></span>${handSvg()}</div>
+          </div>
+        </div>`,
+      sort: `
+        <div class="how-demo how-sort-demo">
+          <div class="how-bins">
+            <div class="how-bin" style="--c:${COLORS[0]}"><span class="sort-chip in-bin" style="--c:${COLORS[0]}"></span></div>
+            <div class="how-bin" style="--c:${COLORS[1]}"><span class="sort-chip in-bin" style="--c:${COLORS[1]}"></span></div>
+          </div>
+          <div class="how-fly">
+            <span class="sort-chip fly-a" style="--c:${COLORS[0]}"></span>
+            <span class="sort-chip fly-b" style="--c:${COLORS[1]}"></span>
+          </div>
+        </div>`,
+      flash: `
+        <div class="how-demo how-flash-demo">
+          <div class="how-eye pulse"></div>
+          <div class="how-flash-dots blink-set">${dotsHtml(3, "seed")}</div>
+        </div>`,
+      count: `
+        <div class="how-demo how-count-demo">
+          <span class="count-dot"></span>
+          <span class="count-dot on"></span>
+          <span class="count-dot how-next">${handSvg()}</span>
+        </div>`,
+      pattern: `
+        <div class="how-demo">
+          <div class="pattern-row how-pattern">
+            ${shapeEl("circle")}${shapeEl("square")}${shapeEl("circle")}
+            <span class="shape-slot glow">?</span>
+          </div>
+          <div class="how-answer">${shapeEl("square")}${handSvg()}</div>
+        </div>`,
+      shape: `
+        <div class="how-demo">
+          <div class="how-target">${shapeEl("triangle")}</div>
+          <div class="hint-arrow"></div>
+          <div class="how-pair">
+            <div class="how-box">${shapeEl("circle")}</div>
+            <div class="how-box how-correct glow">${shapeEl("triangle")}${handSvg()}</div>
+          </div>
+        </div>`,
+      match: `
+        <div class="how-demo">
+          <div class="how-target"><span class="viz-num">3</span></div>
+          <div class="hint-arrow"></div>
+          <div class="how-pair">
+            <div class="how-box">${dotsHtml(2, "seed")}</div>
+            <div class="how-box how-correct glow">${dotsHtml(3, "seed")}${handSvg()}</div>
+          </div>
+        </div>`,
+      order: `
+        <div class="how-demo">
+          <div class="how-order-track">
+            <span class="how-slot filled">1</span>
+            <span class="how-slot filled">2</span>
+            <span class="how-slot next glow">3</span>
+            <span class="how-slot"></span>
+          </div>
+          <div class="rail-arrow wide"></div>
+          <div class="how-chips"><span class="slot-chip hint">3${handSvg()}</span><span class="slot-chip">4</span></div>
+        </div>`,
+      find: `
+        <div class="how-demo how-find-demo">
+          <div class="speak-waves pulse">
+            <svg viewBox="0 0 24 24" width="40" height="40"><path fill="currentColor" d="M4 9v6h3l5 4V5L7 9H4zm11.5 3a3.5 3.5 0 0 0-1.5-2.9v5.8A3.5 3.5 0 0 0 15.5 12z"/></svg>
+          </div>
+          <div class="how-pair">
+            <div class="fish how-dim">1</div>
+            <div class="fish how-correct glow">3${handSvg()}</div>
+            <div class="fish how-dim">5</div>
+          </div>
+        </div>`,
+      join: `
+        <div class="how-demo how-join-demo">
+          <div class="how-pile">${dotsHtml(2, "seed")}</div>
+          <span class="plus">+</span>
+          <div class="how-pile">${dotsHtml(2, "seed")}</div>
+          <span class="plus">→</span>
+          <div class="how-pile how-correct glow">${dotsHtml(4, "seed")}</div>
+        </div>`,
+      take: `
+        <div class="how-demo how-take-demo">
+          <div class="take-board">
+            <span class="seed"></span><span class="seed"></span><span class="seed"></span>
+            <span class="seed gone"></span><span class="seed gone"></span>
+          </div>
+          <div class="how-answer"><span class="num-key how-correct">3${handSvg()}</span></div>
+        </div>`,
+      same: `
+        <div class="how-demo">
+          <div class="how-pair">
+            <div class="how-pile tight">${dotsHtml(3, "seed")}</div>
+            <div class="how-pile spread">${dotsHtml(3, "seed")}</div>
+          </div>
+          <div class="eq-btn how-correct glow">=${handSvg()}</div>
+        </div>`,
     };
-    els.cue.innerHTML = icons[kind] || "";
+    return demos[kind] || "";
+  }
+
+  function setCue(kind) {
+    els.cue.innerHTML = howHtml(kind);
   }
 
   function stageIconSvg(kind) {
-    return (
-      {
-        more: `<div class="viz-more"><span class="pile small">${dotsHtml(2, "seed")}</span><span class="viz-arrow"></span><span class="pile">${dotsHtml(4, "seed")}</span></div>`,
-        size: `<div class="viz-size"><span class="size-dot sm"></span><span class="size-dot lg"></span></div>`,
-        sort: `<div class="viz-sort"><span class="bin" style="--c:${COLORS[0]}"></span><span class="bin" style="--c:${COLORS[1]}"></span></div>`,
-        flash: `<div class="viz-flash"><span class="viz-eye"></span><span class="viz-dots blink"><i></i><i></i><i></i><i></i></span></div>`,
-        count: `<div class="viz-count"><span class="tap-dot"></span><span class="tap-dot on"></span><span class="tap-dot"></span></div>`,
-        pattern: `<div class="viz-pattern">${shapeEl("circle")}${shapeEl("square")}${shapeEl("circle")}<span class="q">?</span></div>`,
-        shape: `<div class="viz-shape">${shapeEl("triangle")}</div>`,
-        match: `<div class="viz-match"><span class="viz-num">3</span><span class="viz-arrow"></span><span class="viz-dots"><i></i><i></i><i></i></span></div>`,
-        order: `<div class="viz-order"><span>1</span><span>2</span><span>3</span><span>4</span></div>`,
-        find: `<div class="viz-find"><span class="viz-ear"></span><span class="viz-num big">2</span></div>`,
-        join: `<div class="viz-join"><span class="pile">${dotsHtml(2, "seed")}</span><span class="plus">+</span><span class="pile">${dotsHtml(3, "seed")}</span></div>`,
-        take: `<div class="viz-join"><span class="pile">${dotsHtml(4, "seed")}</span><span class="plus">−</span><span class="pile">${dotsHtml(1, "seed")}</span></div>`,
-        same: `<div class="viz-same"><span class="pile tight">${dotsHtml(3, "seed")}</span><span class="plus">=</span><span class="pile spread">${dotsHtml(3, "seed")}</span></div>`,
-      }[kind] || ""
-    );
+    return howHtml(kind);
   }
 
   function startAdventure() {
@@ -382,6 +470,7 @@
     els.stage.innerHTML = `
       <div class="compare-row invite">
         <button type="button" class="pile-btn" data-side="L" aria-label="Left group">${dotsHtml(a, "seed")}</button>
+        <div class="vs-mark" aria-hidden="true"><span class="vs-more"></span></div>
         <button type="button" class="pile-btn" data-side="R" aria-label="Right group">${dotsHtml(b, "seed")}</button>
       </div>`;
     $$(".pile-btn", els.stage).forEach((btn) => {
@@ -401,6 +490,7 @@
         <button type="button" class="size-btn" data-big="${leftBig}" aria-label="Left">
           <span class="size-dot ${leftBig ? "lg" : "sm"}"></span>
         </button>
+        <div class="vs-mark" aria-hidden="true"><span class="vs-big"></span></div>
         <button type="button" class="size-btn" data-big="${!leftBig}" aria-label="Right">
           <span class="size-dot ${leftBig ? "sm" : "lg"}"></span>
         </button>
@@ -718,10 +808,12 @@
 
     els.prompt.textContent = `Find ${answer}`;
     els.stage.innerHTML = `
-      <div class="match-layout" style="width:100%">
-        <button type="button" class="speak-btn pulse" id="hear-num" aria-label="Hear again">
-          <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M4 9v6h3l5 4V5L7 9H4zm11.5 3a3.5 3.5 0 0 0-1.5-2.9v5.8A3.5 3.5 0 0 0 15.5 12z"/></svg>
+      <div class="match-layout find-layout" style="width:100%">
+        <button type="button" class="speak-btn speak-big pulse" id="hear-num" aria-label="Hear again">
+          <span class="wave w1"></span><span class="wave w2"></span>
+          <svg viewBox="0 0 24 24" width="36" height="36"><path fill="currentColor" d="M4 9v6h3l5 4V5L7 9H4zm11.5 3a3.5 3.5 0 0 0-1.5-2.9v5.8A3.5 3.5 0 0 0 15.5 12z"/></svg>
         </button>
+        <div class="listen-then" aria-hidden="true"></div>
         <div class="pond invite" role="group"></div>
       </div>`;
 
@@ -752,10 +844,12 @@
     els.prompt.textContent = "Join";
     els.stage.innerHTML = `
       <div class="join-layout">
-        <div class="join-sets pulse">
-          <div class="pile-card">${dotsHtml(left, "seed")}</div>
+        <div class="join-sets merge-anim">
+          <div class="pile-card left-in">${dotsHtml(left, "seed")}</div>
           <span class="plus" aria-hidden="true">+</span>
-          <div class="pile-card">${dotsHtml(right, "seed")}</div>
+          <div class="pile-card right-in">${dotsHtml(right, "seed")}</div>
+          <span class="plus join-to" aria-hidden="true">→</span>
+          <div class="pile-card mystery pulse">?</div>
         </div>
         <div class="num-pad invite" role="group"></div>
       </div>`;
@@ -788,13 +882,17 @@
       btn.type = "button";
       btn.className = "count-dot";
       btn.setAttribute("aria-label", "item");
+      if (i === 0) btn.innerHTML = handSvg();
       btn.addEventListener("click", () => {
         if (state.locked || btn.classList.contains("on")) return;
         btn.classList.add("on");
+        btn.innerHTML = "";
         tapped += 1;
         total.textContent = String(tapped);
         sayNumber(tapped);
         Sound.soft();
+        const next = $$(".count-dot:not(.on)", field)[0];
+        if (next) next.innerHTML = handSvg();
         if (tapped === n) {
           state.locked = true;
           award(1);
@@ -863,9 +961,15 @@
           <button type="button" class="pile-btn tight-pack" data-pick="L" aria-label="Left">${dotsHtml(left, "seed")}</button>
           <button type="button" class="pile-btn spread-pack" data-pick="R" aria-label="Right">${dotsHtml(right, "seed")}</button>
         </div>
-        <button type="button" class="eq-btn pulse" data-pick="eq" aria-label="Same">=</button>
+        <button type="button" class="eq-btn ${answer === "eq" ? "pulse glow" : ""}" data-pick="eq" aria-label="Same">=</button>
       </div>`;
 
+    // If equal: brief rearrange animation so kid sees spacing change isn't amount change
+    if (left === right) {
+      const rightPile = $(".spread-pack", els.stage);
+      rightPile.classList.add("was-tight");
+      setTimeout(() => rightPile.classList.remove("was-tight"), 600);
+    }
     $$("[data-pick]", els.stage).forEach((btn) => {
       btn.addEventListener("click", () => judge(btn, btn.dataset.pick === answer));
     });
