@@ -1,13 +1,46 @@
 (() => {
-  const ROUNDS = 8;
+  const STAGES = [
+    {
+      id: "match",
+      name: "Match",
+      blurb: "Match each number to the right dots.",
+      rounds: 4,
+      max: 5,
+    },
+    {
+      id: "order",
+      name: "Order",
+      blurb: "Tap the numbers from smallest to biggest.",
+      rounds: 3,
+      max: 5,
+    },
+    {
+      id: "pond",
+      name: "Catch",
+      blurb: "Listen, then catch the number in the pond.",
+      rounds: 4,
+      max: 5,
+    },
+    {
+      id: "burst",
+      name: "Flash",
+      blurb: "Seeds flash fast — remember how many.",
+      rounds: 3,
+      max: 5,
+    },
+  ];
+
+  const TOTAL_ROUNDS = STAGES.reduce((n, s) => n + s.rounds, 0);
+
   const state = {
     stars: Number(localStorage.getItem("cg_stars") || 0),
     screen: "home",
-    game: null,
-    round: 0,
+    stageIndex: 0,
+    roundInStage: 0,
+    roundsDone: 0,
     correct: 0,
-    max: 10,
     locked: false,
+    pendingAdvance: null,
   };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -15,36 +48,34 @@
 
   const screens = {
     home: $("#screen-home"),
-    hub: $("#screen-hub"),
+    intro: $("#screen-intro"),
     game: $("#screen-game"),
     done: $("#screen-done"),
   };
 
   const els = {
-    hubStars: $("#hub-stars"),
     gameStars: $("#game-stars"),
     title: $("#game-title"),
+    stageSub: $("#stage-sub"),
     prompt: $("#game-prompt"),
     stage: $("#game-stage"),
     feedback: $("#feedback"),
     bar: $("#progress-bar"),
-    level: $("#level"),
     how: $("#how-dialog"),
+    introKicker: $("#intro-kicker"),
+    introTitle: $("#intro-title"),
+    introMsg: $("#intro-msg"),
     doneTitle: $("#done-title"),
     doneMsg: $("#done-msg"),
     doneScore: $("#done-score"),
   };
 
-  const titles = {
-    match: "Match Dots",
-    order: "Order Path",
-    pond: "Pond Catch",
-    burst: "Flash Count",
-  };
+  function currentStage() {
+    return STAGES[state.stageIndex];
+  }
 
   function saveStars() {
     localStorage.setItem("cg_stars", String(state.stars));
-    els.hubStars.textContent = `★ ${state.stars}`;
     els.gameStars.textContent = `★ ${state.stars}`;
   }
 
@@ -91,7 +122,7 @@
   }
 
   function updateProgress() {
-    els.bar.style.width = `${(state.round / ROUNDS) * 100}%`;
+    els.bar.style.width = `${(state.roundsDone / TOTAL_ROUNDS) * 100}%`;
   }
 
   function award(n = 1) {
@@ -100,49 +131,83 @@
     saveStars();
   }
 
-  function endRound() {
-    const pct = state.correct / ROUNDS;
+  function updateChrome() {
+    const s = currentStage();
+    els.title.textContent = `Stage ${state.stageIndex + 1} of ${STAGES.length}`;
+    els.stageSub.textContent = s.name;
+    saveStars();
+    updateProgress();
+  }
+
+  function startAdventure() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    state.stageIndex = 0;
+    state.roundInStage = 0;
+    state.roundsDone = 0;
+    state.correct = 0;
+    state.locked = false;
+    showStageIntro();
+  }
+
+  function showStageIntro() {
+    const s = currentStage();
+    els.introKicker.textContent = `Stage ${state.stageIndex + 1} of ${STAGES.length}`;
+    els.introTitle.textContent = s.name;
+    els.introMsg.textContent = s.blurb;
+    showScreen("intro");
+  }
+
+  function beginStagePlay() {
+    state.roundInStage = 0;
+    state.locked = false;
+    showScreen("game");
+    updateChrome();
+    nextRound();
+  }
+
+  function finishAdventure() {
+    const pct = state.correct / TOTAL_ROUNDS;
     els.doneTitle.textContent =
-      pct === 1 ? "Perfect patch!" : pct >= 0.6 ? "Growing strong!" : "Nice try, gardener!";
-    els.doneMsg.textContent = `You got ${state.correct} of ${ROUNDS} right this round.`;
+      pct === 1 ? "Perfect garden!" : pct >= 0.6 ? "Garden complete!" : "You finished the path!";
+    els.doneMsg.textContent = `You got ${state.correct} of ${TOTAL_ROUNDS} right across all stages.`;
     els.doneScore.textContent = `★ ${state.stars}`;
     showScreen("done");
   }
 
   function nextRound() {
-    state.round += 1;
-    updateProgress();
-    if (state.round > ROUNDS) {
-      endRound();
+    const s = currentStage();
+    state.roundInStage += 1;
+
+    if (state.roundInStage > s.rounds) {
+      state.stageIndex += 1;
+      if (state.stageIndex >= STAGES.length) {
+        finishAdventure();
+        return;
+      }
+      showStageIntro();
       return;
     }
+
+    state.roundsDone += 1;
     state.locked = false;
     setFeedback("");
+    updateChrome();
+
     const runners = {
       match: renderMatch,
       order: renderOrder,
       pond: renderPond,
       burst: renderBurst,
     };
-    runners[state.game]();
+    runners[s.id]();
   }
 
-  function startGame(name) {
-    state.game = name;
-    state.round = 0;
-    state.correct = 0;
-    state.max = Number(els.level.value);
-    els.title.textContent = titles[name];
-    showScreen("game");
-    nextRound();
-  }
-
-  /* ---------- MATCH DOTS ---------- */
+  /* ---------- MATCH ---------- */
   function renderMatch() {
+    const max = currentStage().max;
     const mode = Math.random() < 0.5 ? "numToQty" : "qtyToNum";
-    const answer = randInt(1, Math.min(state.max, 10));
-    const distractors = uniqueChoices(answer, 3, Math.min(state.max, 10)).filter((n) => n !== answer);
-    const options = shuffle([answer, ...distractors.slice(0, 2)]);
+    const answer = randInt(1, max);
+    const options = uniqueChoices(answer, 3, max);
 
     if (mode === "numToQty") {
       els.prompt.textContent = `Find the stone with ${answer} dots`;
@@ -180,10 +245,11 @@
     }
   }
 
-  /* ---------- ORDER PATH ---------- */
+  /* ---------- ORDER ---------- */
   function renderOrder() {
-    const len = state.max <= 5 ? 4 : state.max <= 10 ? 5 : 6;
-    const start = randInt(1, Math.max(1, Math.min(state.max, 20) - len + 1));
+    const max = currentStage().max;
+    const len = 4;
+    const start = randInt(1, max - len + 1);
     const seq = Array.from({ length: len }, (_, i) => start + i);
     const pool = shuffle(seq);
 
@@ -199,11 +265,10 @@
     const filled = [];
 
     seq.forEach((_, i) => {
-      const s = document.createElement("div");
-      s.className = "slot";
-      s.textContent = i + 1 === 1 ? "start" : "";
-      s.dataset.index = String(i);
-      slotsEl.appendChild(s);
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.textContent = i === 0 ? "start" : "";
+      slotsEl.appendChild(slot);
     });
 
     pool.forEach((n) => {
@@ -237,10 +302,11 @@
     });
   }
 
-  /* ---------- POND CATCH ---------- */
+  /* ---------- CATCH ---------- */
   function renderPond() {
-    const answer = randInt(1, state.max);
-    const fishNums = uniqueChoices(answer, Math.min(6, Math.max(4, Math.min(state.max, 6))), state.max);
+    const max = currentStage().max;
+    const answer = randInt(1, max);
+    const fishNums = uniqueChoices(answer, Math.min(5, max), max);
 
     els.prompt.textContent = `Catch number ${answer}`;
     els.stage.innerHTML = `
@@ -265,13 +331,13 @@
     });
   }
 
-  /* ---------- FLASH COUNT (subitise) ---------- */
+  /* ---------- FLASH ---------- */
   function renderBurst() {
-    // Cap low so flash stays fair — this is subitising, not slow counting
-    const answer = randInt(1, Math.min(state.max, 6));
-    const choices = uniqueChoices(answer, 4, Math.min(Math.max(state.max, 6), 8));
-    // Shorter flash for small sets, a beat longer for 5–6
+    const max = Math.min(currentStage().max, 5);
+    const answer = randInt(1, max);
+    const choices = uniqueChoices(answer, 4, max);
     const flashMs = answer <= 3 ? 700 : 1100;
+    const stageId = currentStage().id;
 
     els.prompt.textContent = "Watch the seeds…";
     els.stage.innerHTML = `
@@ -286,10 +352,10 @@
     const pad = $(".num-pad", els.stage);
 
     for (let i = 0; i < answer; i++) {
-      const s = document.createElement("span");
-      s.className = "seed";
-      s.style.animationDelay = `${i * 0.03}s`;
-      field.appendChild(s);
+      const seed = document.createElement("span");
+      seed.className = "seed";
+      seed.style.animationDelay = `${i * 0.03}s`;
+      field.appendChild(seed);
     }
 
     choices.forEach((n) => {
@@ -302,10 +368,9 @@
       pad.appendChild(btn);
     });
 
-    // Brief ready beat → show → hide → answer
     state.locked = true;
     setTimeout(() => {
-      if (state.game !== "burst") return;
+      if (state.screen !== "game" || currentStage().id !== stageId) return;
       hint.textContent = "How many were there?";
       field.classList.add("is-hidden");
       field.setAttribute("aria-hidden", "true");
@@ -341,26 +406,19 @@
     return shuffle(["Great!", "Yes!", "Nice!", "Super!", "You got it!"])[0];
   }
 
-  /* ---------- WIRING ---------- */
   document.body.addEventListener("click", (e) => {
     const go = e.target.closest("[data-go]");
-    if (go) {
-      const dest = go.dataset.go;
-      if (dest === "hub" || dest === "home") {
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
-        showScreen(dest);
-      }
-      return;
+    if (!go) return;
+    if (go.dataset.go === "home") {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      showScreen("home");
     }
-    const tile = e.target.closest("[data-game]");
-    if (tile) startGame(tile.dataset.game);
   });
 
+  $("#btn-play").addEventListener("click", startAdventure);
+  $("#btn-intro-go").addEventListener("click", beginStagePlay);
   $("#btn-how").addEventListener("click", () => els.how.showModal());
-  $("#btn-again").addEventListener("click", () => startGame(state.game));
-  els.level.addEventListener("change", () => {
-    state.max = Number(els.level.value);
-  });
+  $("#btn-again").addEventListener("click", startAdventure);
 
   saveStars();
   showScreen("home");

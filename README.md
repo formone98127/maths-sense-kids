@@ -1,26 +1,22 @@
 # Count Garden
 
-Kids web game panel for early **maths sense** / number recognition (ages ~3–6).
+Kids web adventure for early **maths sense** / number recognition (ages ~3–6).
 
-Inspired by multisensory number games: matching numerals to quantities, number lines, fishing for numbers, and counting sets.
+One button: **Play**. Four stages run in order — kids never choose a game.
 
 ## Play
 
-Open `index.html` in a browser (Chrome/Edge/Safari). No build step.
+**Live:** https://formone98127.github.io/maths-sense-kids/
 
-Or from this folder:
+Or open `index.html` locally.
 
-```bash
-npx --yes serve .
-```
+## Path
 
-## Games
+| Stage | Activity | Skill |
+|-------|----------|--------|
+| 1 Match | Numeral ↔ dots | quantity link |
+| 2 Order | Tap numbers in sequence | number line |
+| 3 Catch | Find the target numeral | recognition |
+| 4 Flash | Brief flash → how many? | subitising |
 
-| Game | Skill |
-|------|--------|
-| **Match Dots** | Numeral ↔ quantity |
-| **Order Path** | Sequencing / number line |
-| **Pond Catch** | Numeral recognition (+ speech) |
-| **Flash Count** | Brief flash → remember quantity (subitising) |
-
-Stars persist in `localStorage`. Use **Range** on the hub for 1–5 / 1–10 / 1–20.
+Numbers stay in **1–5** for the first adventure so younger kids can finish the full path.

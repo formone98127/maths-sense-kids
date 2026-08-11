@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Count Garden — Maths Sense Games for Kids</title>
-  <meta name="description" content="Playful number recognition games that grow early maths sense." />
+  <meta name="description" content="A stage-by-stage number adventure that grows early maths sense." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet" />
@@ -19,7 +19,6 @@
   </div>
 
   <div id="app">
-    <!-- HOME -->
     <section id="screen-home" class="screen active" aria-label="Home">
       <header class="hero">
         <p class="brand">
@@ -27,9 +26,9 @@
           Count Garden
         </p>
         <h1>Grow your number sense</h1>
-        <p class="lede">See it. Match it. Count it. Play until numbers feel like friends.</p>
+        <p class="lede">One path. Four stages. Just tap Play — we guide the rest.</p>
         <div class="cta-row">
-          <button type="button" class="btn primary" data-go="hub">Play games</button>
+          <button type="button" class="btn primary" id="btn-play">Play</button>
           <button type="button" class="btn ghost" id="btn-how">How it helps</button>
         </div>
         <div class="hero-art" aria-hidden="true">
@@ -47,65 +46,35 @@
 
       <dialog id="how-dialog" class="dialog">
         <form method="dialog">
-          <h2>Built for early maths sense</h2>
-          <p>These games train the same foundations teachers use for number recognition: linking numerals to quantities, ordering, matching, and quick counting.</p>
-          <ul>
-            <li><strong>Match Dots</strong> — numeral ↔ quantity</li>
-            <li><strong>Order Path</strong> — number line sequencing</li>
-            <li><strong>Pond Catch</strong> — recognise the numeral you need</li>
-            <li><strong>Flash Count</strong> — brief flash → remember the quantity (subitising)</li>
-          </ul>
+          <h2>One adventure, four stages</h2>
+          <p>Kids never pick a game — Play walks them through a fixed path that builds number sense step by step.</p>
+          <ol>
+            <li><strong>Stage 1 — Match</strong> numeral ↔ quantity</li>
+            <li><strong>Stage 2 — Order</strong> put numbers in sequence</li>
+            <li><strong>Stage 3 — Catch</strong> find the number you need</li>
+            <li><strong>Stage 4 — Flash</strong> remember how many you saw</li>
+          </ol>
           <button class="btn primary" value="ok">Got it</button>
         </form>
       </dialog>
     </section>
 
-    <!-- HUB -->
-    <section id="screen-hub" class="screen" aria-label="Game hub" hidden>
-      <div class="topbar">
-        <button type="button" class="icon-btn" data-go="home" aria-label="Back home">←</button>
-        <p class="brand compact"><span class="brand-mark sm"></span> Count Garden</p>
-        <div class="stars" id="hub-stars" aria-live="polite">★ 0</div>
-      </div>
-      <h2 class="hub-title">Pick a garden game</h2>
-      <p class="hub-sub">Ages ~3–6 · tap to play · builds number recognition</p>
-      <nav class="game-grid" aria-label="Games">
-        <button type="button" class="game-tile" data-game="match" style="--tile:#7bc96f">
-          <span class="tile-num" aria-hidden="true">4</span>
-          <span class="tile-name">Match Dots</span>
-          <span class="tile-desc">Match the number to the dots</span>
-        </button>
-        <button type="button" class="game-tile" data-game="order" style="--tile:#5dade2">
-          <span class="tile-num" aria-hidden="true">1–5</span>
-          <span class="tile-name">Order Path</span>
-          <span class="tile-desc">Put the numbers in order</span>
-        </button>
-        <button type="button" class="game-tile" data-game="pond" style="--tile:#48c9b0">
-          <span class="tile-num" aria-hidden="true">?</span>
-          <span class="tile-name">Pond Catch</span>
-          <span class="tile-desc">Catch the number you hear</span>
-        </button>
-        <button type="button" class="game-tile" data-game="burst" style="--tile:#f5b041">
-          <span class="tile-num" aria-hidden="true">···</span>
-          <span class="tile-name">Flash Count</span>
-          <span class="tile-desc">Seeds flash — remember how many</span>
-        </button>
-      </nav>
-      <div class="level-row">
-        <label for="level">Range</label>
-        <select id="level">
-          <option value="5">1–5</option>
-          <option value="10" selected>1–10</option>
-          <option value="20">1–20</option>
-        </select>
+    <section id="screen-intro" class="screen" aria-label="Stage intro" hidden>
+      <div class="done-card intro-card">
+        <p class="stage-kicker" id="intro-kicker">Stage 1 of 4</p>
+        <h2 id="intro-title">Match</h2>
+        <p id="intro-msg">Match numbers to dots.</p>
+        <button type="button" class="btn primary" id="btn-intro-go">Let's go</button>
       </div>
     </section>
 
-    <!-- GAME SHELL -->
     <section id="screen-game" class="screen" aria-label="Playing" hidden>
       <div class="topbar">
-        <button type="button" class="icon-btn" data-go="hub" aria-label="Back to games">←</button>
-        <p class="game-heading" id="game-title">Game</p>
+        <button type="button" class="icon-btn" data-go="home" aria-label="Back home">←</button>
+        <div class="game-heading-wrap">
+          <p class="game-heading" id="game-title">Stage 1</p>
+          <p class="stage-sub" id="stage-sub">Match</p>
+        </div>
         <div class="stars" id="game-stars" aria-live="polite">★ 0</div>
       </div>
       <p class="prompt" id="game-prompt"></p>
@@ -114,16 +83,15 @@
       <div class="progress" aria-hidden="true"><div id="progress-bar"></div></div>
     </section>
 
-    <!-- ROUND DONE -->
-    <section id="screen-done" class="screen" aria-label="Round complete" hidden>
+    <section id="screen-done" class="screen" aria-label="Adventure complete" hidden>
       <div class="done-card">
         <p class="brand compact"><span class="brand-mark sm"></span> Count Garden</p>
-        <h2 id="done-title">Brilliant!</h2>
-        <p id="done-msg">You grew more number sense.</p>
+        <h2 id="done-title">Garden complete!</h2>
+        <p id="done-msg">You finished every stage.</p>
         <p class="done-score" id="done-score">★ 0</p>
         <div class="cta-row">
           <button type="button" class="btn primary" id="btn-again">Play again</button>
-          <button type="button" class="btn ghost" data-go="hub">More games</button>
+          <button type="button" class="btn ghost" data-go="home">Home</button>
         </div>
       </div>
     </section>
