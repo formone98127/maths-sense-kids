@@ -1,22 +1,20 @@
-# Count Garden
+# Count
 
-Kids web adventure for early **maths sense** / number recognition (ages ~3–6).
+A calm, stage-by-stage path for early number sense (ages ~3–6).
 
-One button: **Play**. Four stages run in order — kids never choose a game.
+One button. Four stages. No game picker.
 
 ## Play
 
 **Live:** https://formone98127.github.io/maths-sense-kids/
 
-Or open `index.html` locally.
+Or open `index.html`.
 
 ## Path
 
-| Stage | Activity | Skill |
-|-------|----------|--------|
-| 1 Match | Numeral ↔ dots | quantity link |
-| 2 Order | Tap numbers in sequence | number line |
-| 3 Catch | Find the target numeral | recognition |
-| 4 Flash | Brief flash → how many? | subitising |
-
-Numbers stay in **1–5** for the first adventure so younger kids can finish the full path.
+| Stage | Focus |
+|-------|--------|
+| Match | Numeral ↔ quantity |
+| Order | Sequence |
+| Find | Recognition |
+| Flash | Subitising / memory |

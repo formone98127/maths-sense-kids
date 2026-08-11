@@ -3,68 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Count Garden — Maths Sense Games for Kids</title>
-  <meta name="description" content="A stage-by-stage number adventure that grows early maths sense." />
+  <title>Count — Early number sense</title>
+  <meta name="description" content="A calm, stage-by-stage path for early number sense." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="sky" aria-hidden="true">
-    <div class="cloud c1"></div>
-    <div class="cloud c2"></div>
-    <div class="cloud c3"></div>
-    <div class="sun"></div>
-  </div>
+  <div class="field" aria-hidden="true"></div>
 
   <div id="app">
     <section id="screen-home" class="screen active" aria-label="Home">
       <header class="hero">
-        <p class="brand">
-          <span class="brand-mark" aria-hidden="true"></span>
-          Count Garden
-        </p>
-        <h1>Grow your number sense</h1>
-        <p class="lede">One path. Four stages. Just tap Play — we guide the rest.</p>
+        <p class="brand">Count</p>
+        <h1>See numbers clearly</h1>
+        <p class="lede">Four quiet stages. One path. No choices to make.</p>
         <div class="cta-row">
-          <button type="button" class="btn primary" id="btn-play">Play</button>
-          <button type="button" class="btn ghost" id="btn-how">How it helps</button>
+          <button type="button" class="btn primary" id="btn-play">Begin</button>
+          <button type="button" class="btn ghost" id="btn-how">About</button>
         </div>
         <div class="hero-art" aria-hidden="true">
-          <svg class="sprout" viewBox="0 0 320 220" role="img">
-            <ellipse cx="160" cy="198" rx="110" ry="16" fill="#2f6b3a" opacity=".35"/>
-            <path d="M160 190 C158 140 150 100 148 70" stroke="#1f7a45" stroke-width="10" fill="none" stroke-linecap="round"/>
-            <path class="leaf leaf-l" d="M148 110 C110 95 95 70 118 55 C145 70 155 95 148 110Z" fill="#3cb371"/>
-            <path class="leaf leaf-r" d="M150 90 C190 70 215 55 220 78 C190 95 165 100 150 90Z" fill="#56c47a"/>
-            <circle class="berry b1" cx="118" cy="58" r="10" fill="#f4a261"/>
-            <circle class="berry b2" cx="220" cy="78" r="8" fill="#e76f51"/>
-            <text x="160" y="52" text-anchor="middle" font-family="Baloo 2, sans-serif" font-size="42" font-weight="800" fill="#1b4332">3</text>
+          <svg class="mark" viewBox="0 0 320 200" fill="none">
+            <circle cx="96" cy="108" r="54" stroke="currentColor" stroke-width="1.25" opacity="0.35"/>
+            <circle cx="168" cy="108" r="54" stroke="currentColor" stroke-width="1.25" opacity="0.55"/>
+            <circle cx="240" cy="108" r="54" stroke="currentColor" stroke-width="1.25" opacity="0.8"/>
+            <line x1="40" y1="108" x2="280" y2="108" stroke="currentColor" stroke-width="1" opacity="0.25"/>
+            <text x="168" y="118" text-anchor="middle" font-family="Instrument Serif, serif" font-size="42" fill="currentColor">3</text>
           </svg>
         </div>
       </header>
 
       <dialog id="how-dialog" class="dialog">
         <form method="dialog">
-          <h2>One adventure, four stages</h2>
-          <p>Kids never pick a game — Play walks them through a fixed path that builds number sense step by step.</p>
+          <h2>Four stages</h2>
+          <p>Play moves forward on its own. Each stage trains one idea.</p>
           <ol>
-            <li><strong>Stage 1 — Match</strong> numeral ↔ quantity</li>
-            <li><strong>Stage 2 — Order</strong> put numbers in sequence</li>
-            <li><strong>Stage 3 — Catch</strong> find the number you need</li>
-            <li><strong>Stage 4 — Flash</strong> remember how many you saw</li>
+            <li><strong>Match</strong> — numeral and quantity</li>
+            <li><strong>Order</strong> — sequence</li>
+            <li><strong>Find</strong> — recognise the number</li>
+            <li><strong>Flash</strong> — hold a quantity in mind</li>
           </ol>
-          <button class="btn primary" value="ok">Got it</button>
+          <button class="btn primary" value="ok">Close</button>
         </form>
       </dialog>
     </section>
 
     <section id="screen-intro" class="screen" aria-label="Stage intro" hidden>
-      <div class="done-card intro-card">
+      <div class="panel intro-card">
         <p class="stage-kicker" id="intro-kicker">Stage 1 of 4</p>
         <h2 id="intro-title">Match</h2>
         <p id="intro-msg">Match numbers to dots.</p>
-        <button type="button" class="btn primary" id="btn-intro-go">Let's go</button>
+        <button type="button" class="btn primary" id="btn-intro-go">Continue</button>
       </div>
     </section>
 
@@ -75,7 +65,7 @@
           <p class="game-heading" id="game-title">Stage 1</p>
           <p class="stage-sub" id="stage-sub">Match</p>
         </div>
-        <div class="stars" id="game-stars" aria-live="polite">★ 0</div>
+        <div class="score" id="game-stars" aria-live="polite">0</div>
       </div>
       <p class="prompt" id="game-prompt"></p>
       <div id="game-stage" class="game-stage"></div>
@@ -83,14 +73,14 @@
       <div class="progress" aria-hidden="true"><div id="progress-bar"></div></div>
     </section>
 
-    <section id="screen-done" class="screen" aria-label="Adventure complete" hidden>
-      <div class="done-card">
-        <p class="brand compact"><span class="brand-mark sm"></span> Count Garden</p>
-        <h2 id="done-title">Garden complete!</h2>
+    <section id="screen-done" class="screen" aria-label="Complete" hidden>
+      <div class="panel">
+        <p class="brand compact">Count</p>
+        <h2 id="done-title">Complete</h2>
         <p id="done-msg">You finished every stage.</p>
-        <p class="done-score" id="done-score">★ 0</p>
+        <p class="done-score" id="done-score">0</p>
         <div class="cta-row">
-          <button type="button" class="btn primary" id="btn-again">Play again</button>
+          <button type="button" class="btn primary" id="btn-again">Begin again</button>
           <button type="button" class="btn ghost" data-go="home">Home</button>
         </div>
       </div>

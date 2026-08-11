@@ -3,28 +3,28 @@
     {
       id: "match",
       name: "Match",
-      blurb: "Match each number to the right dots.",
+      blurb: "Connect each numeral with its quantity.",
       rounds: 4,
       max: 5,
     },
     {
       id: "order",
       name: "Order",
-      blurb: "Tap the numbers from smallest to biggest.",
+      blurb: "Place the numbers from smallest to largest.",
       rounds: 3,
       max: 5,
     },
     {
       id: "pond",
-      name: "Catch",
-      blurb: "Listen, then catch the number in the pond.",
+      name: "Find",
+      blurb: "Listen, then select the number you hear.",
       rounds: 4,
       max: 5,
     },
     {
       id: "burst",
       name: "Flash",
-      blurb: "Seeds flash fast — remember how many.",
+      blurb: "A set appears briefly. Remember how many.",
       rounds: 3,
       max: 5,
     },
@@ -76,7 +76,7 @@
 
   function saveStars() {
     localStorage.setItem("cg_stars", String(state.stars));
-    els.gameStars.textContent = `★ ${state.stars}`;
+    els.gameStars.textContent = String(state.stars);
   }
 
   function showScreen(name) {
@@ -167,10 +167,9 @@
 
   function finishAdventure() {
     const pct = state.correct / TOTAL_ROUNDS;
-    els.doneTitle.textContent =
-      pct === 1 ? "Perfect garden!" : pct >= 0.6 ? "Garden complete!" : "You finished the path!";
-    els.doneMsg.textContent = `You got ${state.correct} of ${TOTAL_ROUNDS} right across all stages.`;
-    els.doneScore.textContent = `★ ${state.stars}`;
+    els.doneTitle.textContent = pct === 1 ? "Exact" : "Complete";
+    els.doneMsg.textContent = `${state.correct} of ${TOTAL_ROUNDS} correct.`;
+    els.doneScore.textContent = String(state.stars);
     showScreen("done");
   }
 
@@ -210,7 +209,7 @@
     const options = uniqueChoices(answer, 3, max);
 
     if (mode === "numToQty") {
-      els.prompt.textContent = `Find the stone with ${answer} dots`;
+      els.prompt.textContent = `Find ${answer} dots`;
       els.stage.innerHTML = `
         <div class="match-layout">
           <div class="big-num" aria-hidden="true">${answer}</div>
@@ -227,7 +226,7 @@
         box.appendChild(btn);
       });
     } else {
-      els.prompt.textContent = "Which number matches the dots?";
+      els.prompt.textContent = "Which number matches?";
       els.stage.innerHTML = `
         <div class="match-layout">
           <div class="dots-board" aria-label="${answer} dots">${'<span class="dot"></span>'.repeat(answer)}</div>
@@ -253,7 +252,7 @@
     const seq = Array.from({ length: len }, (_, i) => start + i);
     const pool = shuffle(seq);
 
-    els.prompt.textContent = "Tap the numbers in order";
+    els.prompt.textContent = "Place in order";
     els.stage.innerHTML = `
       <div class="order-layout">
         <div class="slots" aria-label="Number path"></div>
@@ -281,7 +280,7 @@
         const expect = seq[filled.length];
         if (n !== expect) {
           chip.classList.add("wrong");
-          setFeedback("Almost — try the next number", "bad");
+          setFeedback("Not yet", "bad");
           setTimeout(() => chip.classList.remove("wrong"), 350);
           return;
         }
@@ -290,11 +289,11 @@
         const slot = slotsEl.children[filled.length - 1];
         slot.classList.add("filled");
         slot.textContent = n;
-        setFeedback("Yes!", "good");
+        setFeedback("Yes", "good");
         if (filled.length === seq.length) {
           state.locked = true;
           award(2);
-          setFeedback("Path complete!", "good");
+          setFeedback("Complete", "good");
           setTimeout(nextRound, 700);
         }
       });
@@ -308,24 +307,23 @@
     const answer = randInt(1, max);
     const fishNums = uniqueChoices(answer, Math.min(5, max), max);
 
-    els.prompt.textContent = `Catch number ${answer}`;
+    els.prompt.textContent = `Find ${answer}`;
     els.stage.innerHTML = `
       <div class="match-layout" style="width:100%">
-        <button type="button" class="speak-btn" id="hear-num">Hear it again</button>
-        <div class="pond" role="group" aria-label="Fish pond"></div>
+        <button type="button" class="speak-btn" id="hear-num">Hear again</button>
+        <div class="pond" role="group" aria-label="Numbers"></div>
       </div>`;
 
     speak(answer);
     $("#hear-num", els.stage).addEventListener("click", () => speak(answer));
 
     const pond = $(".pond", els.stage);
-    fishNums.forEach((n, i) => {
+    fishNums.forEach((n) => {
       const f = document.createElement("button");
       f.type = "button";
       f.className = "fish";
       f.textContent = n;
-      f.style.animationDelay = `${-i * 0.35}s`;
-      f.setAttribute("aria-label", `Fish ${n}`);
+      f.setAttribute("aria-label", `Number ${n}`);
       f.addEventListener("click", () => judge(f, n === answer));
       pond.appendChild(f);
     });
@@ -339,11 +337,11 @@
     const flashMs = answer <= 3 ? 700 : 1100;
     const stageId = currentStage().id;
 
-    els.prompt.textContent = "Watch the seeds…";
+    els.prompt.textContent = "Watch";
     els.stage.innerHTML = `
       <div class="burst-layout">
-        <div class="seed-field is-flashing" aria-label="Seeds about to flash"></div>
-        <p class="flash-hint" id="flash-hint">Get ready</p>
+        <div class="seed-field is-flashing" aria-label="Dots about to flash"></div>
+        <p class="flash-hint" id="flash-hint"></p>
         <div class="num-pad is-disabled" role="group" aria-label="Choose count" hidden></div>
       </div>`;
 
@@ -371,7 +369,7 @@
     state.locked = true;
     setTimeout(() => {
       if (state.screen !== "game" || currentStage().id !== stageId) return;
-      hint.textContent = "How many were there?";
+      hint.textContent = "";
       field.classList.add("is-hidden");
       field.setAttribute("aria-hidden", "true");
       pad.hidden = false;
@@ -379,7 +377,7 @@
       $$(".num-key", pad).forEach((b) => {
         b.disabled = false;
       });
-      els.prompt.textContent = "How many seeds flashed?";
+      els.prompt.textContent = "How many?";
       state.locked = false;
     }, flashMs + 280);
   }
@@ -394,7 +392,7 @@
       setTimeout(nextRound, 650);
     } else {
       el.classList.add("wrong");
-      setFeedback("Try again!", "bad");
+      setFeedback("Try again", "bad");
       setTimeout(() => {
         el.classList.remove("wrong");
         state.locked = false;
@@ -403,7 +401,7 @@
   }
 
   function pickPraise() {
-    return shuffle(["Great!", "Yes!", "Nice!", "Super!", "You got it!"])[0];
+    return shuffle(["Yes", "Good", "Right"])[0];
   }
 
   document.body.addEventListener("click", (e) => {
