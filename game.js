@@ -111,10 +111,88 @@
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(String(text));
-    u.rate = 0.92;
-    u.pitch = 1.15;
+    u.rate = 0.9;
+    u.pitch = 1;
     window.speechSynthesis.speak(u);
   }
+
+  /* Calm procedural tones — soft sine, low gain */
+  const Sound = (() => {
+    let ctx = null;
+    let master = null;
+    let enabled = localStorage.getItem("cg_sound") !== "0";
+
+    function ensure() {
+      if (!ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        ctx = new AC();
+        master = ctx.createGain();
+        master.gain.value = 0.18;
+        master.connect(ctx.destination);
+      }
+      if (ctx.state === "suspended") ctx.resume();
+      return ctx;
+    }
+
+    function tone(freq, when, dur, type = "sine", gain = 0.22) {
+      const c = ensure();
+      if (!c || !enabled) return;
+      const t0 = c.currentTime + when;
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      const f = c.createBiquadFilter();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t0);
+      f.type = "lowpass";
+      f.frequency.setValueAtTime(1400, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(gain, t0 + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(f);
+      f.connect(g);
+      g.connect(master);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.02);
+    }
+
+    return {
+      unlock() {
+        ensure();
+      },
+      setEnabled(on) {
+        enabled = on;
+        localStorage.setItem("cg_sound", on ? "1" : "0");
+      },
+      isEnabled() {
+        return enabled;
+      },
+      ok() {
+        // soft major third
+        tone(392, 0, 0.28, "sine", 0.16);
+        tone(493.88, 0.08, 0.38, "sine", 0.14);
+      },
+      soft() {
+        tone(440, 0, 0.16, "sine", 0.1);
+      },
+      no() {
+        // calm low note — not a buzz
+        tone(196, 0, 0.32, "sine", 0.12);
+        tone(185, 0.05, 0.28, "triangle", 0.05);
+      },
+      stage() {
+        tone(329.63, 0, 0.3, "sine", 0.12);
+        tone(415.3, 0.14, 0.36, "sine", 0.11);
+        tone(523.25, 0.28, 0.45, "sine", 0.1);
+      },
+      done() {
+        tone(349.23, 0, 0.35, "sine", 0.12);
+        tone(440, 0.18, 0.4, "sine", 0.11);
+        tone(523.25, 0.36, 0.55, "sine", 0.1);
+        tone(659.25, 0.52, 0.7, "sine", 0.08);
+      },
+    };
+  })();
 
   function setFeedback(msg, kind) {
     els.feedback.textContent = msg;
@@ -141,6 +219,7 @@
 
   function startAdventure() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
+    Sound.unlock();
     state.stageIndex = 0;
     state.roundInStage = 0;
     state.roundsDone = 0;
@@ -154,6 +233,7 @@
     els.introKicker.textContent = `Stage ${state.stageIndex + 1} of ${STAGES.length}`;
     els.introTitle.textContent = s.name;
     els.introMsg.textContent = s.blurb;
+    Sound.stage();
     showScreen("intro");
   }
 
@@ -170,6 +250,7 @@
     els.doneTitle.textContent = pct === 1 ? "Exact" : "Complete";
     els.doneMsg.textContent = `${state.correct} of ${TOTAL_ROUNDS} correct.`;
     els.doneScore.textContent = String(state.stars);
+    Sound.done();
     showScreen("done");
   }
 
@@ -281,6 +362,7 @@
         if (n !== expect) {
           chip.classList.add("wrong");
           setFeedback("Not yet", "bad");
+          Sound.no();
           setTimeout(() => chip.classList.remove("wrong"), 350);
           return;
         }
@@ -294,7 +376,10 @@
           state.locked = true;
           award(2);
           setFeedback("Complete", "good");
+          Sound.ok();
           setTimeout(nextRound, 700);
+        } else {
+          Sound.soft();
         }
       });
       poolEl.appendChild(chip);
@@ -389,10 +474,12 @@
       el.classList.add("correct");
       award(1);
       setFeedback(pickPraise(), "good");
+      Sound.ok();
       setTimeout(nextRound, 650);
     } else {
       el.classList.add("wrong");
       setFeedback("Try again", "bad");
+      Sound.no();
       setTimeout(() => {
         el.classList.remove("wrong");
         state.locked = false;
@@ -414,9 +501,26 @@
   });
 
   $("#btn-play").addEventListener("click", startAdventure);
-  $("#btn-intro-go").addEventListener("click", beginStagePlay);
+  $("#btn-intro-go").addEventListener("click", () => {
+    Sound.unlock();
+    beginStagePlay();
+  });
   $("#btn-how").addEventListener("click", () => els.how.showModal());
   $("#btn-again").addEventListener("click", startAdventure);
+
+  const soundBtn = $("#btn-sound");
+  function syncSoundBtn() {
+    const on = Sound.isEnabled();
+    soundBtn.textContent = on ? "Sound on" : "Sound off";
+    soundBtn.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  soundBtn.addEventListener("click", () => {
+    Sound.unlock();
+    Sound.setEnabled(!Sound.isEnabled());
+    syncSoundBtn();
+    if (Sound.isEnabled()) Sound.soft();
+  });
+  syncSoundBtn();
 
   saveStars();
   showScreen("home");
