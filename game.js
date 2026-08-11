@@ -3,34 +3,39 @@
     {
       id: "match",
       name: "Match",
-      blurb: "Connect each numeral with its quantity.",
+      say: "Match the same amount.",
       rounds: 4,
       max: 5,
+      icon: "match",
     },
     {
       id: "order",
       name: "Order",
-      blurb: "Place the numbers from smallest to largest.",
+      say: "Small to big.",
       rounds: 3,
       max: 5,
+      icon: "order",
     },
     {
       id: "pond",
       name: "Find",
-      blurb: "Listen, then select the number you hear.",
+      say: "Listen. Tap the number.",
       rounds: 4,
       max: 5,
+      icon: "find",
     },
     {
       id: "burst",
       name: "Flash",
-      blurb: "A set appears briefly. Remember how many.",
+      say: "Look carefully. How many?",
       rounds: 3,
       max: 5,
+      icon: "flash",
     },
   ];
 
   const TOTAL_ROUNDS = STAGES.reduce((n, s) => n + s.rounds, 0);
+  const WORD = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
 
   const state = {
     stars: Number(localStorage.getItem("cg_stars") || 0),
@@ -40,7 +45,6 @@
     roundsDone: 0,
     correct: 0,
     locked: false,
-    pendingAdvance: null,
   };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -58,16 +62,17 @@
     title: $("#game-title"),
     stageSub: $("#stage-sub"),
     prompt: $("#game-prompt"),
+    cue: $("#game-cue"),
     stage: $("#game-stage"),
     feedback: $("#feedback"),
     bar: $("#progress-bar"),
-    how: $("#how-dialog"),
-    introKicker: $("#intro-kicker"),
-    introTitle: $("#intro-title"),
-    introMsg: $("#intro-msg"),
+    pips: $("#stage-pips"),
+    introDots: $("#intro-dots"),
+    introVisual: $("#intro-visual"),
     doneTitle: $("#done-title"),
     doneMsg: $("#done-msg"),
     doneScore: $("#done-score"),
+    soundBtn: $("#btn-sound"),
   };
 
   function currentStage() {
@@ -107,16 +112,20 @@
     return shuffle([...set]);
   }
 
-  function speak(text) {
-    if (!window.speechSynthesis) return;
+  function speak(text, opts = {}) {
+    if (!window.speechSynthesis || !Sound.isEnabled()) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(String(text));
-    u.rate = 0.9;
-    u.pitch = 1;
+    u.rate = opts.rate ?? 0.88;
+    u.pitch = opts.pitch ?? 1;
     window.speechSynthesis.speak(u);
   }
 
-  /* Calm procedural tones — soft sine, low gain */
+  function sayNumber(n) {
+    speak(WORD[n] || String(n));
+  }
+
+  /* Calm procedural tones */
   const Sound = (() => {
     let ctx = null;
     let master = null;
@@ -219,9 +228,15 @@
     };
   })();
 
-  function setFeedback(msg, kind) {
-    els.feedback.textContent = msg;
-    els.feedback.className = `feedback ${kind || ""}`;
+  function setFeedback(kind) {
+    els.feedback.textContent = "";
+    els.feedback.className = `feedback show ${kind || ""}`;
+    els.feedback.innerHTML =
+      kind === "good"
+        ? `<span class="fb-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M9.2 16.6 4.8 12.2l1.4-1.4 3 3 8-8 1.4 1.4-9.4 9.4z"/></svg></span>`
+        : kind === "bad"
+          ? `<span class="fb-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5 12 10.6 6.4 5z"/></svg></span>`
+          : "";
   }
 
   function updateProgress() {
@@ -234,12 +249,38 @@
     saveStars();
   }
 
+  function renderPips() {
+    els.pips.innerHTML = STAGES.map(
+      (_, i) => `<span class="pip${i === state.stageIndex ? " on" : i < state.stageIndex ? " done" : ""}"></span>`
+    ).join("");
+  }
+
   function updateChrome() {
     const s = currentStage();
-    els.title.textContent = `Stage ${state.stageIndex + 1} of ${STAGES.length}`;
+    els.title.textContent = `Stage ${state.stageIndex + 1}`;
     els.stageSub.textContent = s.name;
     saveStars();
     updateProgress();
+    renderPips();
+  }
+
+  function setCue(kind) {
+    const icons = {
+      match: `<svg viewBox="0 0 64 40" width="72" height="44"><circle cx="14" cy="20" r="10" fill="none" stroke="currentColor" stroke-width="2"/><text x="14" y="25" text-anchor="middle" font-size="14" font-family="Instrument Serif, serif" fill="currentColor">2</text><path d="M28 20h8" stroke="currentColor" stroke-width="2"/><circle cx="50" cy="14" r="3" fill="currentColor"/><circle cx="50" cy="26" r="3" fill="currentColor"/></svg>`,
+      order: `<svg viewBox="0 0 72 40" width="80" height="44"><text x="8" y="26" font-size="16" font-family="Instrument Serif, serif" fill="currentColor">1</text><text x="28" y="26" font-size="16" font-family="Instrument Serif, serif" fill="currentColor">2</text><text x="48" y="26" font-size="16" font-family="Instrument Serif, serif" fill="currentColor">3</text><path d="M10 30h48" stroke="currentColor" stroke-width="1.5" opacity=".4"/><path d="M52 12l8 8-8 8" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+      find: `<svg viewBox="0 0 48 40" width="56" height="44"><path d="M10 14v12h6l8 6V8l-8 6H10z" fill="currentColor"/><path d="M30 12a8 8 0 0 1 0 16" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+      flash: `<svg viewBox="0 0 56 40" width="64" height="44"><ellipse cx="28" cy="20" rx="18" ry="12" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="28" cy="20" r="5" fill="currentColor"/><circle cx="10" cy="10" r="2" fill="currentColor" opacity=".5"/><circle cx="46" cy="10" r="2" fill="currentColor" opacity=".5"/></svg>`,
+    };
+    els.cue.innerHTML = icons[kind] || "";
+  }
+
+  function stageIconSvg(kind) {
+    return {
+      match: `<div class="viz-match"><span class="viz-num">3</span><span class="viz-arrow"></span><span class="viz-dots"><i></i><i></i><i></i></span></div>`,
+      order: `<div class="viz-order"><span>1</span><span>2</span><span>3</span><span>4</span></div>`,
+      find: `<div class="viz-find"><span class="viz-ear"></span><span class="viz-num big">2</span></div>`,
+      flash: `<div class="viz-flash"><span class="viz-eye"></span><span class="viz-dots blink"><i></i><i></i><i></i><i></i></span></div>`,
+    }[kind];
   }
 
   function startAdventure() {
@@ -254,10 +295,12 @@
 
   function showStageIntro() {
     const s = currentStage();
-    els.introKicker.textContent = `Stage ${state.stageIndex + 1} of ${STAGES.length}`;
-    els.introTitle.textContent = s.name;
-    els.introMsg.textContent = s.blurb;
+    els.introDots.innerHTML = STAGES.map(
+      (_, i) => `<span class="pip${i === state.stageIndex ? " on" : i < state.stageIndex ? " done" : ""}"></span>`
+    ).join("");
+    els.introVisual.innerHTML = stageIconSvg(s.icon);
     Sound.stage();
+    setTimeout(() => speak(s.say), 280);
     showScreen("intro");
   }
 
@@ -270,11 +313,11 @@
   }
 
   function finishAdventure() {
-    const pct = state.correct / TOTAL_ROUNDS;
-    els.doneTitle.textContent = pct === 1 ? "Exact" : "Complete";
-    els.doneMsg.textContent = `${state.correct} of ${TOTAL_ROUNDS} correct.`;
+    els.doneTitle.textContent = "Complete";
+    els.doneMsg.textContent = `${state.correct} of ${TOTAL_ROUNDS}`;
     els.doneScore.textContent = String(state.stars);
     Sound.done();
+    speak("Well done.");
     showScreen("done");
   }
 
@@ -296,6 +339,7 @@
     state.locked = false;
     setFeedback("");
     updateChrome();
+    setCue(s.icon);
 
     const runners = {
       match: renderMatch,
@@ -315,10 +359,14 @@
 
     if (mode === "numToQty") {
       els.prompt.textContent = `Find ${answer} dots`;
+      speak(`Find ${WORD[answer]}.`);
       els.stage.innerHTML = `
         <div class="match-layout">
-          <div class="big-num" aria-hidden="true">${answer}</div>
-          <div class="stones" role="group" aria-label="Choose quantity"></div>
+          <div class="target-card pulse">
+            <div class="big-num">${answer}</div>
+            <div class="hint-arrow" aria-hidden="true"></div>
+          </div>
+          <div class="stones invite" role="group" aria-label="Choose quantity"></div>
         </div>`;
       const box = $(".stones", els.stage);
       options.forEach((n) => {
@@ -332,10 +380,14 @@
       });
     } else {
       els.prompt.textContent = "Which number matches?";
+      speak("How many?");
       els.stage.innerHTML = `
         <div class="match-layout">
-          <div class="dots-board" aria-label="${answer} dots">${'<span class="dot"></span>'.repeat(answer)}</div>
-          <div class="stones" role="group" aria-label="Choose number"></div>
+          <div class="target-card pulse">
+            <div class="dots-board" aria-label="${answer} dots">${'<span class="dot"></span>'.repeat(answer)}</div>
+            <div class="hint-arrow" aria-hidden="true"></div>
+          </div>
+          <div class="stones invite" role="group" aria-label="Choose number"></div>
         </div>`;
       const box = $(".stones", els.stage);
       options.forEach((n) => {
@@ -358,34 +410,37 @@
     const pool = shuffle(seq);
 
     els.prompt.textContent = "Place in order";
+    speak("Small to big.");
     els.stage.innerHTML = `
       <div class="order-layout">
+        <div class="order-rail" aria-hidden="true"><span class="rail-arrow"></span></div>
         <div class="slots" aria-label="Number path"></div>
-        <div class="pool" role="group" aria-label="Numbers to place"></div>
+        <div class="pool invite" role="group" aria-label="Numbers to place"></div>
       </div>`;
 
     const slotsEl = $(".slots", els.stage);
     const poolEl = $(".pool", els.stage);
     const filled = [];
 
-    seq.forEach((_, i) => {
+    seq.forEach(() => {
       const slot = document.createElement("div");
       slot.className = "slot";
-      slot.textContent = i === 0 ? "start" : "";
       slotsEl.appendChild(slot);
     });
+    slotsEl.children[0].classList.add("next");
 
     pool.forEach((n) => {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "slot-chip";
       chip.textContent = n;
+      if (n === seq[0]) chip.classList.add("hint");
       chip.addEventListener("click", () => {
         if (state.locked) return;
         const expect = seq[filled.length];
         if (n !== expect) {
           chip.classList.add("wrong");
-          setFeedback("Not yet", "bad");
+          setFeedback("bad");
           Sound.no();
           setTimeout(() => chip.classList.remove("wrong"), 350);
           return;
@@ -393,24 +448,30 @@
         chip.remove();
         filled.push(n);
         const slot = slotsEl.children[filled.length - 1];
+        slot.classList.remove("next");
         slot.classList.add("filled");
         slot.textContent = n;
-        setFeedback("Yes", "good");
-        if (filled.length === seq.length) {
+        if (filled.length < seq.length) {
+          slotsEl.children[filled.length].classList.add("next");
+          const nextChip = $$(`.slot-chip`, poolEl).find((c) => Number(c.textContent) === seq[filled.length]);
+          $$(".slot-chip", poolEl).forEach((c) => c.classList.remove("hint"));
+          if (nextChip) nextChip.classList.add("hint");
+          setFeedback("good");
+          Sound.soft();
+          setTimeout(() => setFeedback(""), 280);
+        } else {
           state.locked = true;
           award(2);
-          setFeedback("Complete", "good");
+          setFeedback("good");
           Sound.ok();
           setTimeout(nextRound, 700);
-        } else {
-          Sound.soft();
         }
       });
       poolEl.appendChild(chip);
     });
   }
 
-  /* ---------- CATCH ---------- */
+  /* ---------- FIND ---------- */
   function renderPond() {
     const max = currentStage().max;
     const answer = randInt(1, max);
@@ -419,12 +480,15 @@
     els.prompt.textContent = `Find ${answer}`;
     els.stage.innerHTML = `
       <div class="match-layout" style="width:100%">
-        <button type="button" class="speak-btn" id="hear-num">Hear again</button>
-        <div class="pond" role="group" aria-label="Numbers"></div>
+        <button type="button" class="speak-btn pulse" id="hear-num" aria-label="Hear again">
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M4 9v6h3l5 4V5L7 9H4zm11.5 3a3.5 3.5 0 0 0-1.5-2.9v5.8A3.5 3.5 0 0 0 15.5 12z"/></svg>
+        </button>
+        <div class="pond invite" role="group" aria-label="Numbers"></div>
       </div>`;
 
-    speak(answer);
-    $("#hear-num", els.stage).addEventListener("click", () => speak(answer));
+    const playAnswer = () => sayNumber(answer);
+    playAnswer();
+    $("#hear-num", els.stage).addEventListener("click", playAnswer);
 
     const pond = $(".pond", els.stage);
     fishNums.forEach((n) => {
@@ -443,25 +507,27 @@
     const max = Math.min(currentStage().max, 5);
     const answer = randInt(1, max);
     const choices = uniqueChoices(answer, 4, max);
-    const flashMs = answer <= 3 ? 700 : 1100;
+    const flashMs = answer <= 3 ? 900 : 1200;
     const stageId = currentStage().id;
 
     els.prompt.textContent = "Watch";
+    speak("Look.");
     els.stage.innerHTML = `
       <div class="burst-layout">
-        <div class="seed-field is-flashing" aria-label="Dots about to flash"></div>
-        <p class="flash-hint" id="flash-hint"></p>
+        <div class="watch-cue pulse" aria-hidden="true">
+          <svg viewBox="0 0 56 40" width="64" height="44"><ellipse cx="28" cy="20" rx="18" ry="12" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="28" cy="20" r="5" fill="currentColor"/></svg>
+        </div>
+        <div class="seed-field is-flashing" aria-label="Dots"></div>
         <div class="num-pad is-disabled" role="group" aria-label="Choose count" hidden></div>
       </div>`;
 
     const field = $(".seed-field", els.stage);
-    const hint = $("#flash-hint", els.stage);
     const pad = $(".num-pad", els.stage);
+    const watch = $(".watch-cue", els.stage);
 
     for (let i = 0; i < answer; i++) {
       const seed = document.createElement("span");
       seed.className = "seed";
-      seed.style.animationDelay = `${i * 0.03}s`;
       field.appendChild(seed);
     }
 
@@ -478,17 +544,19 @@
     state.locked = true;
     setTimeout(() => {
       if (state.screen !== "game" || currentStage().id !== stageId) return;
-      hint.textContent = "";
+      watch.hidden = true;
       field.classList.add("is-hidden");
       field.setAttribute("aria-hidden", "true");
       pad.hidden = false;
       pad.classList.remove("is-disabled");
+      pad.classList.add("invite");
       $$(".num-key", pad).forEach((b) => {
         b.disabled = false;
       });
       els.prompt.textContent = "How many?";
+      speak("How many?");
       state.locked = false;
-    }, flashMs + 280);
+    }, flashMs + 400);
   }
 
   function judge(el, ok) {
@@ -497,22 +565,19 @@
     if (ok) {
       el.classList.add("correct");
       award(1);
-      setFeedback(pickPraise(), "good");
+      setFeedback("good");
       Sound.ok();
       setTimeout(nextRound, 650);
     } else {
       el.classList.add("wrong");
-      setFeedback("Try again", "bad");
+      setFeedback("bad");
       Sound.no();
       setTimeout(() => {
         el.classList.remove("wrong");
+        setFeedback("");
         state.locked = false;
-      }, 400);
+      }, 450);
     }
-  }
-
-  function pickPraise() {
-    return shuffle(["Yes", "Good", "Right"])[0];
   }
 
   document.body.addEventListener("click", (e) => {
@@ -526,19 +591,19 @@
 
   $("#btn-play").addEventListener("click", startAdventure);
   $("#btn-intro-go").addEventListener("click", () => {
-    Sound.unlock();
-    beginStagePlay();
+    Sound.unlock().then(() => beginStagePlay());
   });
-  $("#btn-how").addEventListener("click", () => els.how.showModal());
   $("#btn-again").addEventListener("click", startAdventure);
 
-  const soundBtn = $("#btn-sound");
   function syncSoundBtn() {
     const on = Sound.isEnabled();
-    soundBtn.textContent = on ? "Sound on" : "Sound off";
-    soundBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    els.soundBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    const onIco = $(".ico-on", els.soundBtn);
+    const offIco = $(".ico-off", els.soundBtn);
+    if (onIco) onIco.hidden = !on;
+    if (offIco) offIco.hidden = on;
   }
-  soundBtn.addEventListener("click", () => {
+  els.soundBtn.addEventListener("click", () => {
     Sound.unlock();
     Sound.setEnabled(!Sound.isEnabled());
     syncSoundBtn();
