@@ -1070,7 +1070,6 @@ button {
   color: var(--ink);
 }
 
-.shape.circle,
 .shape.circle::before {
   content: "";
   width: 36px;
