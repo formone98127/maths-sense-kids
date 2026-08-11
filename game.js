@@ -313,7 +313,6 @@
     ).join("");
     els.introVisual.innerHTML = stageIconSvg(s.icon);
     Sound.stage();
-    setTimeout(() => speak(s.say), 280);
     showScreen("intro");
   }
 
@@ -330,7 +329,6 @@
     els.doneMsg.textContent = `${state.correct} of ${TOTAL_ROUNDS}`;
     els.doneScore.textContent = String(state.stars);
     Sound.done();
-    speak("Well done.");
     showScreen("done");
   }
 
@@ -381,7 +379,6 @@
     while (a === b) b = randInt(1, max);
     const leftMore = a > b;
     els.prompt.textContent = "More";
-    speak("Which has more?");
     els.stage.innerHTML = `
       <div class="compare-row invite">
         <button type="button" class="pile-btn" data-side="L" aria-label="Left group">${dotsHtml(a, "seed")}</button>
@@ -399,7 +396,6 @@
   function renderSize() {
     const leftBig = Math.random() < 0.5;
     els.prompt.textContent = "Bigger";
-    speak("Tap the bigger one.");
     els.stage.innerHTML = `
       <div class="compare-row invite size-row">
         <button type="button" class="size-btn" data-big="${leftBig}" aria-label="Left">
@@ -426,7 +422,6 @@
     ]);
     const placed = {};
     els.prompt.textContent = "Sort";
-    speak("Match the colors.");
     els.stage.innerHTML = `
       <div class="sort-layout">
         <div class="bins">
@@ -513,7 +508,6 @@
     const stageId = currentStage().id;
 
     els.prompt.textContent = "Watch";
-    speak("Look.");
     els.stage.innerHTML = `
       <div class="burst-layout">
         <div class="watch-cue pulse" aria-hidden="true">
@@ -549,7 +543,6 @@
       $$(".num-key", pad).forEach((b) => {
         b.disabled = false;
       });
-      speak("How many?");
       state.locked = false;
     }, flashMs + 400);
   }
@@ -567,7 +560,6 @@
     const options = shuffle([answer, ...distractors]);
 
     els.prompt.textContent = "Next";
-    speak("What comes next?");
     els.stage.innerHTML = `
       <div class="pattern-layout">
         <div class="pattern-row" aria-label="Pattern">${seq.map((s) => shapeEl(s)).join("")}<span class="shape-slot pulse">?</span></div>
@@ -590,7 +582,6 @@
     const answer = SHAPES[randInt(0, SHAPES.length - 1)];
     const options = shuffle([...SHAPES]);
     els.prompt.textContent = "Same shape";
-    speak("Find the same shape.");
     els.stage.innerHTML = `
       <div class="match-layout">
         <div class="target-card pulse">${shapeEl(answer)}</div>
@@ -617,7 +608,6 @@
 
     if (mode === "numToQty") {
       els.prompt.textContent = `Find ${answer} dots`;
-      speak(`Find ${WORD[answer]}.`);
       els.stage.innerHTML = `
         <div class="match-layout">
           <div class="target-card pulse"><div class="big-num">${answer}</div><div class="hint-arrow"></div></div>
@@ -634,7 +624,6 @@
       });
     } else {
       els.prompt.textContent = "Which number?";
-      speak("How many?");
       els.stage.innerHTML = `
         <div class="match-layout">
           <div class="target-card pulse"><div class="dots-board">${dotsHtml(answer)}</div><div class="hint-arrow"></div></div>
@@ -661,7 +650,6 @@
     const pool = shuffle(seq);
 
     els.prompt.textContent = "Order";
-    speak("Small to big.");
     els.stage.innerHTML = `
       <div class="order-layout">
         <div class="order-rail"><span class="rail-arrow"></span></div>
@@ -762,7 +750,6 @@
     const choices = uniqueChoices(answer, 4, Math.min(max + 2, 8));
 
     els.prompt.textContent = "Join";
-    speak("How many altogether?");
     els.stage.innerHTML = `
       <div class="join-layout">
         <div class="join-sets pulse">
@@ -788,7 +775,6 @@
     const n = randInt(3, Math.min(currentStage().max, 5));
     let tapped = 0;
     els.prompt.textContent = "Count";
-    speak("Tap each one.");
     els.stage.innerHTML = `
       <div class="count-layout">
         <div class="count-field invite" role="group" aria-label="Tap each"></div>
@@ -814,7 +800,6 @@
           award(1);
           setFeedback("good");
           Sound.ok();
-          setTimeout(() => speak(WORD[n] || String(n)), 200);
           setTimeout(nextRound, 900);
         }
       });
@@ -831,7 +816,6 @@
     const choices = uniqueChoices(answer, 4, max);
 
     els.prompt.textContent = "Take";
-    speak("How many left?");
     els.stage.innerHTML = `
       <div class="join-layout">
         <div class="take-board" aria-label="Objects">
@@ -873,7 +857,6 @@
     const answer = left === right ? "eq" : left > right ? "L" : "R";
 
     els.prompt.textContent = "Same?";
-    speak(left === right ? "Are they the same?" : "Which has more?");
     els.stage.innerHTML = `
       <div class="same-layout">
         <div class="compare-row">
